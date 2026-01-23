@@ -7,6 +7,7 @@ import {
   numeric,
   jsonb,
   real,
+  boolean,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { z } from "zod";
@@ -31,6 +32,7 @@ export const productVariants = pgTable("product_variants", {
   sizeId: uuid("size_id").references(() => sizes.id, { onDelete: "restrict" }),
   specification: text("specification"),
   inStock: integer("in_stock").notNull().default(0),
+  isActive: boolean("is_active").notNull().default(true),
   weight: real("weight"),
   dimensions: jsonb("dimensions"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -66,6 +68,7 @@ export const insertVariantSchema = z.object({
   sizeId: z.string().uuid().optional().nullable(),
   specification: z.string().optional().nullable(),
   inStock: z.number().int().nonnegative().optional(),
+  isActive: z.boolean().optional(),
   weight: z.number().optional().nullable(),
   dimensions: z
     .object({

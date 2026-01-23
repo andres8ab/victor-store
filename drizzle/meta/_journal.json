@@ -8,6 +8,13 @@
       "when": 1769026292812,
       "tag": "0000_last_loa",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1769108900286,
+      "tag": "0001_redundant_spitfire",
+      "breakpoints": true
     }
   ]
 }

@@ -3,8 +3,8 @@
 import { db } from "@/lib/db";
 import { orders, orderItems, addresses, carts, cartItems } from "@/lib/db/schema";
 import { eq, and, desc } from "drizzle-orm";
-import { getCurrentUser } from "@/lib/auth/actions";
 import { revalidatePath } from "next/cache";
+import { getCurrentUser } from "../auth/actions";
 
 type CreateOrderItem = {
   productVariantId: string;
@@ -30,8 +30,7 @@ export async function createOrder({
   customerInfo: CustomerInfo;
   paymentMethod: "whatsapp" | "payment";
 }) {
-  const user = await getCurrentUser();
-  
+  const user = await getCurrentUser();  
   if (!user) {
     return { success: false, error: "Debes iniciar sesión" };
   }

@@ -3,6 +3,7 @@ import { isAdmin } from "@/lib/auth/admin";
 import { getProductWithVariantsForAdmin } from "@/lib/actions/admin/products";
 import { getAllCategoriesForAdmin } from "@/lib/actions/admin/categories";
 import { getAllBrandsForAdmin } from "@/lib/actions/admin/brands";
+import { getAllColors, getAllSizes } from "@/lib/actions/admin/filters";
 import { toggleProductPublished, toggleVariantActive } from "@/lib/actions/admin/products";
 import Link from "next/link";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
@@ -25,11 +26,10 @@ async function ToggleVariantButton({
     <form action={toggleAction}>
       <button
         type="submit"
-        className={`rounded-lg p-2 transition-colors ${
-          isActive
+        className={`rounded-lg p-2 transition-colors ${isActive
             ? "text-green hover:bg-light-200"
             : "text-dark-500 hover:bg-light-200"
-        }`}
+          }`}
         title={isActive ? "Desactivar" : "Activar"}
       >
         {isActive ? (
@@ -57,6 +57,8 @@ export default async function AdminProductDetailPage({
   const product = await getProductWithVariantsForAdmin(id);
   const categories = await getAllCategoriesForAdmin();
   const brands = await getAllBrandsForAdmin();
+  const colors = await getAllColors();
+  const sizes = await getAllSizes();
 
   if (!product) {
     return (
@@ -84,13 +86,12 @@ export default async function AdminProductDetailPage({
 
       <div className="mb-8">
         <h1 className="text-heading-2 text-dark-900 mb-2">{product.name}</h1>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
           <span
-            className={`inline-block rounded-full px-3 py-1 text-footnote ${
-              product.isPublished
+            className={`inline-block rounded-full px-3 py-1 text-footnote ${product.isPublished
                 ? "bg-green/20 text-green"
                 : "bg-dark-500/20 text-dark-500"
-            }`}
+              }`}
           >
             {product.isPublished ? "Publicado" : "Borrador"}
           </span>
@@ -128,6 +129,8 @@ export default async function AdminProductDetailPage({
           <VariantsList
             productId={product.id}
             variants={product.variants}
+            colors={colors}
+            sizes={sizes}
             ToggleVariantButton={ToggleVariantButton}
           />
         </div>

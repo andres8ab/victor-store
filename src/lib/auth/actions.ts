@@ -4,7 +4,7 @@ import { cookies, headers } from "next/headers";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { guests } from "@/lib/db/schema/index";
+import { guests, users } from "@/lib/db/schema/index";
 import { and, eq, lt } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
@@ -61,24 +61,48 @@ const signUpSchema = z.object({
 });
 
 export async function signUp(formData: FormData) {
-  const rawData = {
-    name: formData.get("name") as string,
-    email: formData.get("email") as string,
-    password: formData.get("password") as string,
-  };
+  try {
+    const rawData = {
+      name: formData.get("name") as string,
+      email: formData.get("email") as string,
+      password: formData.get("password") as string,
+    };
 
-  const data = signUpSchema.parse(rawData);
+    const data = signUpSchema.parse(rawData);
 
-  const res = await auth.api.signUpEmail({
-    body: {
-      email: data.email,
-      password: data.password,
-      name: data.name,
-    },
-  });
+    const res = await auth.api.signUpEmail({
+      body: {
+        email: data.email,
+        password: data.password,
+        name: data.name,
+      },
+    });
 
-  await migrateGuestToUser();
-  return { ok: true, userId: res.user?.id };
+    await migrateGuestToUser();
+    return { ok: true, userId: res.user?.id };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      const firstError = error.issues[0];
+      return { 
+        ok: false, 
+        error: firstError?.message || "Datos inválidos. Por favor verifica la información." 
+      };
+    }
+    
+    if (error instanceof Error) {
+      // Check for common auth errors
+      const errorMessage = error.message.toLowerCase();
+      if (errorMessage.includes("email") && errorMessage.includes("already")) {
+        return { ok: false, error: "Este correo electrónico ya está registrado." };
+      }
+      if (errorMessage.includes("password")) {
+        return { ok: false, error: "La contraseña no cumple con los requisitos." };
+      }
+      return { ok: false, error: error.message || "Error al registrar usuario." };
+    }
+    
+    return { ok: false, error: "Error inesperado al registrar usuario." };
+  }
 }
 
 const signInSchema = z.object({
@@ -87,22 +111,46 @@ const signInSchema = z.object({
 });
 
 export async function signIn(formData: FormData) {
-  const rawData = {
-    email: formData.get("email") as string,
-    password: formData.get("password") as string,
-  };
+  try {
+    const rawData = {
+      email: formData.get("email") as string,
+      password: formData.get("password") as string,
+    };
 
-  const data = signInSchema.parse(rawData);
+    const data = signInSchema.parse(rawData);
 
-  const res = await auth.api.signInEmail({
-    body: {
-      email: data.email,
-      password: data.password,
-    },
-  });
+    const res = await auth.api.signInEmail({
+      body: {
+        email: data.email,
+        password: data.password,
+      },
+    });
 
-  await migrateGuestToUser();
-  return { ok: true, userId: res.user?.id };
+    await migrateGuestToUser();
+    return { ok: true, userId: res.user?.id };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      const firstError = error.issues[0];
+      return { 
+        ok: false, 
+        error: firstError?.message || "Datos inválidos. Por favor verifica la información." 
+      };
+    }
+    
+    if (error instanceof Error) {
+      // Check for common auth errors
+      const errorMessage = error.message.toLowerCase();
+      if (errorMessage.includes("invalid") || errorMessage.includes("incorrect")) {
+        return { ok: false, error: "Correo electrónico o contraseña incorrectos." };
+      }
+      if (errorMessage.includes("not found") || errorMessage.includes("does not exist")) {
+        return { ok: false, error: "No se encontró una cuenta con este correo electrónico." };
+      }
+      return { ok: false, error: error.message || "Error al iniciar sesión." };
+    }
+    
+    return { ok: false, error: "Error inesperado al iniciar sesión." };
+  }
 }
 
 export async function getCurrentUser() {
@@ -111,7 +159,18 @@ export async function getCurrentUser() {
       headers: await headers(),
     });
 
-    return session?.user ?? null;
+    if (!session?.user?.id) {
+      return null;
+    }
+
+    // Fetch full user data with role from database
+    const user = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, session.user.id))
+      .limit(1);
+
+    return user[0] ?? null;
   } catch (e) {
     console.log(e);
     return null;
@@ -119,7 +178,7 @@ export async function getCurrentUser() {
 }
 
 export async function signOut() {
-  await auth.api.signOut({ headers: {} });
+  await auth.api.signOut({ headers: await headers() });
   return { ok: true };
 }
 

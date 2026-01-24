@@ -1,9 +1,9 @@
 import { getCart } from "@/lib/actions/cart";
-import { getCurrentUser } from "@/lib/auth/actions";
 import Image from "next/image";
 import Link from "next/link";
 import { CartActions } from "@/components/CartActions";
 import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/auth/actions";
 
 export default async function CartPage() {
   const user = await getCurrentUser();
@@ -12,7 +12,7 @@ export default async function CartPage() {
     redirect("/sign-in");
   }
 
-  const cartItems = await getCart();
+  const cartItems = await getCart(user.id);
 
   const subtotal = cartItems.reduce((sum, item) => {
     const price = item.variant.salePrice 

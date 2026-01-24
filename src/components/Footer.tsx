@@ -4,6 +4,7 @@ import { getAllCategories } from "@/lib/actions/category";
 
 export default async function Footer() {
   const categories = await getAllCategories();
+  const currentYear = new Date().getFullYear();
 
   // Organize columns: distribute categories across columns, with navigation links
   const maxCategoriesPerColumn = 6;
@@ -112,7 +113,7 @@ export default async function Footer() {
             <Image src="/globe.svg" alt="" width={16} height={16} />
             <span>Colombia</span>
             <span>
-              © 2026 Todo Electrico Victor Autopartes SAS. All Rights Reserved
+              © {currentYear} Todo Electrico Victor Autopartes SAS. All Rights Reserved
             </span>
           </div>
           <ul className="flex items-center gap-6 text-caption">

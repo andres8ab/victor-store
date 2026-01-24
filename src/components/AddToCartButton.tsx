@@ -5,6 +5,7 @@ import { ShoppingBag } from "lucide-react";
 import { addToCart, getCart } from "@/lib/actions/cart";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/cart";
+import { useAuth } from "@/hooks/useAuth";
 
 export function AddToCartButton({
   productVariantId,
@@ -16,15 +17,21 @@ export function AddToCartButton({
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const syncCountFromServer = useCartStore((state) => state.syncCountFromServer);
+  const { user } = useAuth();
 
   const handleAddToCart = async () => {
+    if (!user) {
+      router.push("/sign-in");
+      return;
+    }
+
     setLoading(true);
-    const result = await addToCart(productVariantId, 1);
+    const result = await addToCart(productVariantId, user.id, 1);
     
     if (result.success) {
       // Sync cart count from server
       try {
-        const cartItems = await getCart();
+        const cartItems = await getCart(user.id);
         const totalCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
         syncCountFromServer(totalCount);
       } catch (error) {

@@ -87,3 +87,21 @@ export async function getOrderById(orderId: string) {
     billingAddress: billingAddress?.[0] ?? null,
   };
 }
+
+export async function getMonthlySales() {
+  await requireAdmin();
+
+  const monthlySales = await db
+    .select({
+      month: sql<string>`TO_CHAR(${orders.createdAt}, 'YYYY-MM')`,
+      total: sql<number>`COALESCE(SUM(${orders.totalAmount}::numeric), 0)`,
+      count: sql<number>`COUNT(*)::int`,
+    })
+    .from(orders)
+    .where(sql`${orders.status} != 'cancelled'`)
+    .groupBy(sql`TO_CHAR(${orders.createdAt}, 'YYYY-MM')`)
+    .orderBy(sql`TO_CHAR(${orders.createdAt}, 'YYYY-MM') DESC`)
+    .limit(12);
+
+  return monthlySales;
+}

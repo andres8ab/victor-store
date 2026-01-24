@@ -1,12 +1,13 @@
 import { redirect } from "next/navigation";
 import { isAdmin } from "@/lib/auth/admin";
-import { getAllOrders } from "@/lib/actions/admin/orders";
+import { getAllOrders, getMonthlySales } from "@/lib/actions/admin/orders";
 import { getAllUsers } from "@/lib/actions/admin/users";
 import { db } from "@/lib/db";
 import { products, productVariants } from "@/lib/db/schema";
 import { sql } from "drizzle-orm";
 import Link from "next/link";
 import { Package, ShoppingCart, Users, TrendingUp } from "lucide-react";
+import MonthlySalesChart from "@/components/admin/MonthlySalesChart";
 
 export default async function AdminDashboard() {
   const admin = await isAdmin();
@@ -15,7 +16,7 @@ export default async function AdminDashboard() {
     redirect("/");
   }
 
-  const [orders, users, stats] = await Promise.all([
+  const [orders, users, stats, monthlySales] = await Promise.all([
     getAllOrders(),
     getAllUsers(),
     db
@@ -29,6 +30,7 @@ export default async function AdminDashboard() {
         productVariants,
         sql`${productVariants.productId} = ${products.id}`,
       ),
+    getMonthlySales(),
   ]);
 
   const statsData = stats[0];
@@ -86,6 +88,15 @@ export default async function AdminDashboard() {
             </div>
             <ShoppingCart className="h-8 w-8 text-dark-500" />
           </div>
+        </div>
+      </div>
+
+      <div className="mb-8 rounded-lg bg-light-100 p-6 border border-light-300 overflow-hidden">
+        <h2 className="text-heading-3 text-dark-900 mb-4">
+          Comparación de Ventas Mensuales
+        </h2>
+        <div className="w-full overflow-x-auto">
+          <MonthlySalesChart data={monthlySales} />
         </div>
       </div>
 

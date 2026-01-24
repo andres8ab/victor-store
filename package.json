@@ -18,10 +18,13 @@
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
     "better-auth": "^1.4.7",
+    "chart.js": "^4.5.1",
+    "cloudinary": "^2.9.0",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.41.0",
     "lucide-react": "^0.561.0",
     "next": "16.0.10",
+    "primereact": "^10.9.7",
     "query-string": "^9.3.1",
     "react": "19.2.1",
     "react-dom": "19.2.1",

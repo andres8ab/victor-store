@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { CartLink } from "./CartLink";
+import { UserMenu } from "./UserMenu";
 import SearchModal from "./SearchModal";
 
 const NAV_LINKS = [
@@ -58,6 +59,7 @@ export default function Navbar() {
             Buscar
           </button>
           <CartLink />
+          <UserMenu />
         </div>
 
         <button
@@ -104,7 +106,10 @@ export default function Navbar() {
             >
               Buscar
             </button>
-            <CartLink />
+            <div className="flex items-center gap-3">
+              <CartLink />
+              <UserMenu />
+            </div>
           </li>
         </ul>
       </div>

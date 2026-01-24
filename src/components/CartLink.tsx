@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCartStore } from "@/store/cart";
 import { useEffect, useRef } from "react";
 import { getCart } from "@/lib/actions/cart";
+import { useAuth } from "@/hooks/useAuth";
 
 export function CartLink() {
   const itemCount = useCartStore((state) => state.getItemCount());
@@ -11,11 +12,18 @@ export function CartLink() {
   const prevCountRef = useRef(itemCount);
   const countElementRef = useRef<HTMLSpanElement>(null);
 
+  const { user } = useAuth();
+
   // Sync cart count on mount
   useEffect(() => {
+    if (!user) {
+      syncCountFromServer(0);
+      return;
+    }
+    
     const syncCartCount = async () => {
       try {
-        const cartItems = await getCart();
+        const cartItems = await getCart(user.id);
         const totalCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
         syncCountFromServer(totalCount);
       } catch (error) {
@@ -23,7 +31,7 @@ export function CartLink() {
       }
     };
     syncCartCount();
-  }, [syncCountFromServer]);
+  }, [syncCountFromServer, user]);
 
   useEffect(() => {
     // Animate when count changes and increases

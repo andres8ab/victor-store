@@ -3,7 +3,6 @@
 import { db } from "@/lib/db";
 import { carts, cartItems, productVariants, products, productImages } from "@/lib/db/schema";
 import { eq, and, desc, inArray } from "drizzle-orm";
-import { getCurrentUser } from "@/lib/auth/actions";
 import { revalidatePath } from "next/cache";
 
 export type CartItemWithDetails = {
@@ -25,17 +24,15 @@ export type CartItemWithDetails = {
   imageUrl: string | null;
 };
 
-export async function getCart(): Promise<CartItemWithDetails[]> {
-  const user = await getCurrentUser();
-  
-  if (!user) {
+export async function getCart(userId?: string): Promise<CartItemWithDetails[]> {
+  if (!userId) {
     return [];
   }
 
   const userCart = await db
     .select()
     .from(carts)
-    .where(eq(carts.userId, user.id))
+    .where(eq(carts.userId, userId))
     .orderBy(desc(carts.createdAt))
     .limit(1);
 
@@ -103,10 +100,8 @@ export async function getCart(): Promise<CartItemWithDetails[]> {
   }));
 }
 
-export async function addToCart(productVariantId: string, quantity: number = 1) {
-  const user = await getCurrentUser();
-  
-  if (!user) {
+export async function addToCart(productVariantId: string, userId: string, quantity: number = 1) {
+  if (!userId) {
     return { success: false, requiresAuth: true };
   }
 
@@ -129,14 +124,14 @@ export async function addToCart(productVariantId: string, quantity: number = 1) 
   let userCart = await db
     .select()
     .from(carts)
-    .where(eq(carts.userId, user.id))
+    .where(eq(carts.userId, userId))
     .orderBy(desc(carts.createdAt))
     .limit(1);
 
   if (!userCart.length) {
     const newCart = await db
       .insert(carts)
-      .values({ userId: user.id })
+      .values({ userId })
       .returning();
     userCart = newCart;
   }
@@ -178,15 +173,13 @@ export async function addToCart(productVariantId: string, quantity: number = 1) 
   return { success: true };
 }
 
-export async function updateCartItemQuantity(cartItemId: string, quantity: number) {
-  const user = await getCurrentUser();
-  
-  if (!user) {
+export async function updateCartItemQuantity(cartItemId: string, quantity: number, userId: string) {
+  if (!userId) {
     return { success: false, error: "Debes iniciar sesión" };
   }
 
   if (quantity <= 0) {
-    return removeFromCart(cartItemId);
+    return removeFromCart(cartItemId, userId);
   }
 
   // Get cart item and verify ownership
@@ -203,7 +196,7 @@ export async function updateCartItemQuantity(cartItemId: string, quantity: numbe
     .where(
       and(
         eq(cartItems.id, cartItemId),
-        eq(carts.userId, user.id)
+        eq(carts.userId, userId)
       )
     )
     .limit(1);
@@ -225,10 +218,8 @@ export async function updateCartItemQuantity(cartItemId: string, quantity: numbe
   return { success: true };
 }
 
-export async function removeFromCart(cartItemId: string) {
-  const user = await getCurrentUser();
-  
-  if (!user) {
+export async function removeFromCart(cartItemId: string, userId: string) {
+  if (!userId) {
     return { success: false, error: "Debes iniciar sesión" };
   }
 
@@ -240,7 +231,7 @@ export async function removeFromCart(cartItemId: string) {
     .where(
       and(
         eq(cartItems.id, cartItemId),
-        eq(carts.userId, user.id)
+        eq(carts.userId, userId)
       )
     )
     .limit(1);
@@ -255,17 +246,15 @@ export async function removeFromCart(cartItemId: string) {
   return { success: true };
 }
 
-export async function clearCart() {
-  const user = await getCurrentUser();
-  
-  if (!user) {
+export async function clearCart(userId: string) {
+  if (!userId) {
     return { success: false, error: "Debes iniciar sesión" };
   }
 
   const userCart = await db
     .select()
     .from(carts)
-    .where(eq(carts.userId, user.id))
+    .where(eq(carts.userId, userId))
     .orderBy(desc(carts.createdAt))
     .limit(1);
 

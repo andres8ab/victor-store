@@ -12,6 +12,7 @@ import { eq, and, sql } from "drizzle-orm";
 import { requireAdmin } from "@/lib/auth/admin";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { insertProductImageSchema, insertVariantSchema } from "@/lib/db/schema";
 
 const createProductSchema = z.object({
   name: z.string().min(1),
@@ -19,6 +20,7 @@ const createProductSchema = z.object({
   categoryId: z.string().uuid().nullable().optional(),
   brandId: z.string().uuid().nullable().optional(),
   isPublished: z.boolean().optional(),
+  images: z.array(z.string().url()).optional(),
 });
 
 const updateProductSchema = createProductSchema.extend({
@@ -30,23 +32,82 @@ const toggleProductSchema = z.object({
   isPublished: z.boolean(),
 });
 
+const createVariantSchema = insertVariantSchema.extend({
+  images: z.array(z.string().url()).optional(),
+});
+
 export async function createProduct(data: z.infer<typeof createProductSchema>) {
   await requireAdmin();
   const validated = createProductSchema.parse(data);
 
-  const [product] = await db
-    .insert(products)
-    .values({
-      name: validated.name,
-      description: validated.description,
-      categoryId: validated.categoryId ?? null,
-      brandId: validated.brandId ?? null,
-      isPublished: validated.isPublished ?? false,
-    })
-    .returning();
+  return await db.transaction(async (tx) => {
+    const [product] = await tx
+      .insert(products)
+      .values({
+        name: validated.name,
+        description: validated.description,
+        categoryId: validated.categoryId ?? null,
+        brandId: validated.brandId ?? null,
+        isPublished: validated.isPublished ?? false,
+      })
+      .returning();
 
-  revalidatePath("/admin/products");
-  return { success: true, product };
+    if (validated.images && validated.images.length > 0) {
+      await tx.insert(productImages).values(
+        validated.images.map((url, index) => ({
+          productId: product.id,
+          url,
+          sortOrder: index,
+          isPrimary: index === 0,
+        })),
+      );
+    }
+
+    revalidatePath("/admin/products");
+    return { success: true, product };
+  });
+}
+
+export async function createProductVariant(
+  data: z.infer<typeof createVariantSchema>,
+) {
+  await requireAdmin();
+  const validated = createVariantSchema.parse(data);
+
+  return await db.transaction(async (tx) => {
+    const [variant] = await tx
+      .insert(productVariants)
+      .values({
+        productId: validated.productId,
+        sku: validated.sku,
+        price: validated.price,
+        salePrice: validated.salePrice,
+        colorId: validated.colorId,
+        sizeId: validated.sizeId,
+        inStock: validated.inStock,
+        isActive: validated.isActive ?? true,
+        weight: validated.weight,
+        dimensions: validated.dimensions,
+        specification: validated.specification,
+      })
+      .returning();
+
+    if (validated.images && validated.images.length > 0) {
+      await tx.insert(productImages).values(
+        validated.images.map((url, index) => ({
+          productId: validated.productId,
+          variantId: variant.id,
+          url,
+          sortOrder: index,
+          isPrimary: index === 0,
+        })),
+      );
+    }
+
+    revalidatePath("/admin/products");
+    revalidatePath(`/admin/products/${validated.productId}`);
+    return { success: true, variant };
+  });
 }
 
 export async function updateProduct(data: z.infer<typeof updateProductSchema>) {

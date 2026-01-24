@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { updateCartItemQuantity, removeFromCart, getCart } from "@/lib/actions/cart";
 import { useCartStore } from "@/store/cart";
+import { useAuth } from "@/hooks/useAuth";
 import { Minus, Plus, Trash2 } from "lucide-react";
 
 export function CartActions({
@@ -17,10 +18,12 @@ export function CartActions({
   const [quantity, setQuantity] = useState(currentQuantity);
   const [loading, setLoading] = useState(false);
   const syncCountFromServer = useCartStore((state) => state.syncCountFromServer);
+  const { user } = useAuth();
 
   const syncCartCount = async () => {
+    if (!user) return;
     try {
-      const cartItems = await getCart();
+      const cartItems = await getCart(user.id);
       const totalCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
       syncCountFromServer(totalCount);
     } catch (error) {
@@ -29,12 +32,16 @@ export function CartActions({
   };
 
   const handleUpdate = async (newQuantity: number) => {
+    if (!user) {
+      alert("Debes iniciar sesión");
+      return;
+    }
     if (newQuantity < 1 || newQuantity > maxQuantity) return;
     
     setLoading(true);
     setQuantity(newQuantity);
     
-    const result = await updateCartItemQuantity(cartItemId, newQuantity);
+    const result = await updateCartItemQuantity(cartItemId, newQuantity, user.id);
     
     if (result.success) {
       // Sync cart count from server
@@ -48,12 +55,16 @@ export function CartActions({
   };
 
   const handleRemove = async () => {
+    if (!user) {
+      alert("Debes iniciar sesión");
+      return;
+    }
     if (!confirm("¿Estás seguro de que quieres eliminar este producto del carrito?")) {
       return;
     }
     
     setLoading(true);
-    const result = await removeFromCart(cartItemId);
+    const result = await removeFromCart(cartItemId, user.id);
     
     if (result.success) {
       // Sync cart count from server

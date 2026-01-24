@@ -74,7 +74,7 @@ export default async function AdminOrderDetailPage({
         <h1 className="text-heading-2 text-dark-900 mb-4">
           Pedido #{order.id.slice(0, 8)}
         </h1>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
           <span
             className={`inline-block rounded-full px-3 py-1 text-footnote ${getStatusColor(
               order.status
@@ -174,7 +174,7 @@ export default async function AdminOrderDetailPage({
           {order.items.map((item) => (
             <div
               key={item.id}
-              className="flex items-center justify-between rounded-lg border border-light-300 p-4"
+              className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-lg border border-light-300 p-4"
             >
               <div>
                 <p className="text-body-medium text-dark-900">
@@ -185,7 +185,7 @@ export default async function AdminOrderDetailPage({
                   Cantidad: {item.quantity}
                 </p>
               </div>
-              <div className="text-right">
+              <div className="text-left sm:text-right">
                 <p className="text-body-medium text-dark-900">
                   ${Number(item.priceAtPurchase).toLocaleString("es-CO")}
                 </p>

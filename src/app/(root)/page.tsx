@@ -7,8 +7,6 @@ const { products } = await getAllProducts({ limit: 6 });
 const Home = async () => {
   const user = await getCurrentUser();
 
-  console.log("USER:", user);
-
   return (
     <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <section aria-labelledby="latest" className="pb-12">

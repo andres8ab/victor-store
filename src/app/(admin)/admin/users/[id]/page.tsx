@@ -3,6 +3,7 @@ import { isAdmin } from "@/lib/auth/admin";
 import { getUserById } from "@/lib/actions/admin/users";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import UserOrdersTable from "@/components/admin/UserOrdersTable";
 
 export default async function AdminUserDetailPage({
   params,
@@ -74,7 +75,7 @@ export default async function AdminUserDetailPage({
         <h1 className="text-heading-2 text-dark-900 mb-4">
           {user.name || user.email}
         </h1>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
           <span
             className={`inline-block rounded-full px-3 py-1 text-footnote ${
               user.role === "admin"
@@ -124,65 +125,7 @@ export default async function AdminUserDetailPage({
         {user.orders.length === 0 ? (
           <p className="text-body text-dark-500">Este usuario no tiene pedidos</p>
         ) : (
-          <div className="rounded-lg border border-light-300 bg-light-100 overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-light-200 border-b border-light-300">
-                <tr>
-                  <th className="px-6 py-4 text-left text-body-medium text-dark-900">
-                    ID
-                  </th>
-                  <th className="px-6 py-4 text-left text-body-medium text-dark-900">
-                    Total
-                  </th>
-                  <th className="px-6 py-4 text-left text-body-medium text-dark-900">
-                    Estado
-                  </th>
-                  <th className="px-6 py-4 text-left text-body-medium text-dark-900">
-                    Fecha
-                  </th>
-                  <th className="px-6 py-4 text-left text-body-medium text-dark-900">
-                    Acciones
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-light-300">
-                {user.orders.map((order) => (
-                  <tr key={order.id} className="hover:bg-light-200 transition-colors">
-                    <td className="px-6 py-4 text-body text-dark-700">
-                      {order.id.slice(0, 8)}...
-                    </td>
-                    <td className="px-6 py-4 text-body-medium text-dark-900">
-                      ${Number(order.totalAmount).toLocaleString("es-CO")}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-block rounded-full px-3 py-1 text-footnote ${getStatusColor(
-                          order.status
-                        )}`}
-                      >
-                        {getStatusLabel(order.status)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-body text-dark-700">
-                      {new Date(order.createdAt).toLocaleDateString("es-CO", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </td>
-                    <td className="px-6 py-4">
-                      <Link
-                        href={`/admin/orders/${order.id}`}
-                        className="text-body-medium text-green hover:underline"
-                      >
-                        Ver detalle →
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <UserOrdersTable orders={user.orders} />
         )}
       </div>
     </div>

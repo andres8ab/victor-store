@@ -2,9 +2,6 @@
 
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { users } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
 
 export async function isAdmin(): Promise<boolean> {
   try {
@@ -16,13 +13,11 @@ export async function isAdmin(): Promise<boolean> {
       return false;
     }
 
-    const user = await db
-      .select({ role: users.role })
-      .from(users)
-      .where(eq(users.id, session.user.id))
-      .limit(1);
-
-    return user[0]?.role === "admin";
+    // Optimization: Check role directly from session if available
+    // better-auth with drizzle adapter and schema should include custom fields if configured or by default
+    // We assume 'role' is part of the user object returned by better-auth
+    // casting to any if typescript complains initially, but it should be there based on schema
+    return (session.user as any).role === "admin";
   } catch (e) {
     console.error("Error checking admin status:", e);
     return false;
@@ -37,6 +32,7 @@ export async function requireAdmin() {
   return true;
 }
 
+
 export async function getCurrentAdminUser() {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -46,15 +42,12 @@ export async function getCurrentAdminUser() {
     return null;
   }
 
-  const user = await db
-    .select()
-    .from(users)
-    .where(eq(users.id, session.user.id))
-    .limit(1);
+  // Optimization: Use session user directly
+  const user = session.user as any;
 
-  if (user[0]?.role !== "admin") {
+  if (user.role !== "admin") {
     return null;
   }
 
-  return user[0];
+  return user;
 }

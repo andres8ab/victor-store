@@ -1,16 +1,15 @@
 import { getCart } from "@/lib/actions/cart";
-import { getCurrentUser } from "@/lib/auth/actions";
 import { redirect } from "next/navigation";
 import { CheckoutForm } from "@/components/CheckoutForm";
+import { getCurrentUser } from "@/lib/auth/actions";
 
 export default async function CheckoutPage() {
-  const user = await getCurrentUser();
-  
+  const user = await getCurrentUser();  
   if (!user) {
     redirect("/sign-in?redirect=/checkout");
   }
 
-  const cartItems = await getCart();
+  const cartItems = await getCart(user.id);
 
   if (cartItems.length === 0) {
     redirect("/cart");

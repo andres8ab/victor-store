@@ -72,7 +72,7 @@ export default async function ProductsPage({
           {products.length === 0 ? (
             <div className="rounded-lg border border-light-300 p-8 text-center">
               <p className="text-body text-dark-700">
-                No products match your filters.
+                No se encontraron productos con los filtros aplicados.
               </p>
             </div>
           ) : (
@@ -80,8 +80,8 @@ export default async function ProductsPage({
               {products.map((p) => {
                 const price =
                   p.minPrice !== null &&
-                  p.maxPrice !== null &&
-                  p.minPrice !== p.maxPrice
+                    p.maxPrice !== null &&
+                    p.minPrice !== p.maxPrice
                     ? `$${p.minPrice.toFixed(2)} - $${p.maxPrice.toFixed(2)}`
                     : p.minPrice !== null
                       ? p.minPrice

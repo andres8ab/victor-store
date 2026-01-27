@@ -9,7 +9,7 @@ export default async function Footer() {
   // Organize columns: distribute categories across columns, with navigation links
   const maxCategoriesPerColumn = 6;
   const categoryColumns: typeof categories[] = [];
-  
+
   for (let i = 0; i < categories.length; i += maxCategoriesPerColumn) {
     categoryColumns.push(categories.slice(i, i + maxCategoriesPerColumn));
   }
@@ -54,7 +54,7 @@ export default async function Footer() {
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-12">
           <div className="flex items-start md:col-span-3">
-            <Image src="/logo.png" alt="Victor" width={153} height={102} />
+            <Image src="/logo.png" alt="Victor" width={1530} height={1020} />
           </div>
 
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-4 md:col-span-7">
@@ -64,25 +64,25 @@ export default async function Footer() {
                 <ul className="space-y-3">
                   {col.isCategory && col.links.length > 0
                     ? col.links.map((category) => (
-                        <li key={category.id}>
-                          <Link
-                            href={`/products?category[]=${category.slug}`}
-                            className="text-body text-light-400 hover:text-light-300 transition-colors"
-                          >
-                            {category.name}
-                          </Link>
-                        </li>
-                      ))
+                      <li key={category.id}>
+                        <Link
+                          href={`/products?category[]=${category.slug}`}
+                          className="text-body text-light-400 hover:text-light-300 transition-colors"
+                        >
+                          {category.name}
+                        </Link>
+                      </li>
+                    ))
                     : col.fallbackLinks?.map((link) => (
-                        <li key={link.href}>
-                          <Link
-                            href={link.href}
-                            className="text-body text-light-400 hover:text-light-300 transition-colors"
-                          >
-                            {link.label}
-                          </Link>
-                        </li>
-                      ))}
+                      <li key={link.href}>
+                        <Link
+                          href={link.href}
+                          className="text-body text-light-400 hover:text-light-300 transition-colors"
+                        >
+                          {link.label}
+                        </Link>
+                      </li>
+                    ))}
                 </ul>
               </div>
             ))}

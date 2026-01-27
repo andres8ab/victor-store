@@ -58,7 +58,7 @@ export function UserMenu() {
         href="/sign-in"
         className="flex items-center gap-2 rounded-md px-4 py-2 text-body text-dark-900 transition-colors hover:bg-light-200 hover:text-dark-700"
       >
-        <User className="h-5 w-5" />
+        <i className="pi pi-user text-xl p-overlay-badge" style={{ fontSize: '1rem' }} />
         <span className="hidden sm:inline">Inicia sesión</span>
       </Link>
     );
@@ -76,7 +76,8 @@ export function UserMenu() {
         aria-expanded={isOpen}
         aria-haspopup="true"
       >
-        <UserCircle className="h-5 w-5" />
+        <i className="pi pi-user text-xl p-overlay-badge" style={{ fontSize: '1rem' }} />
+
         <span className="hidden sm:inline max-w-[120px] truncate">{userName}</span>
         <ChevronDown
           className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
@@ -99,7 +100,8 @@ export function UserMenu() {
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-3 px-4 py-2 text-body text-dark-700 hover:bg-light-200 hover:text-dark-900 transition-colors"
             >
-              <UserCircle className="h-4 w-4" />
+              <i className="pi pi-user text-xl p-overlay-badge" style={{ fontSize: '1rem' }} />
+
               Ver Perfil
             </Link>
 

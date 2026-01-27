@@ -72,6 +72,7 @@ export default function CreateProductModal({
 
     return (
         <Dialog
+            modal
             header="Crear Nuevo Producto"
             visible={isOpen}
             onHide={onClose}

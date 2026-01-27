@@ -106,31 +106,30 @@ export default function Filters() {
           onClick={() => setOpen(true)}
           aria-haspopup="dialog"
         >
-          Filters
+          Filtrar
         </button>
         <button
           className="text-caption text-dark-700 underline"
           onClick={clearAll}
         >
-          Clear all
+          Limpiar
         </button>
       </div>
 
       <aside className="sticky top-20 hidden h-fit min-w-60 rounded-lg border border-light-300 bg-light-100 p-4 md:block">
         <div className="mb-2 flex items-center justify-between">
-          <h3 className="text-body-medium text-dark-900">Filters</h3>
+          <h3 className="text-body-medium text-dark-900">Filtros</h3>
           <button
             className="text-caption text-dark-700 underline"
             onClick={clearAll}
           >
-            Clear all
+            Limpiar
           </button>
         </div>
 
         <Group
-          title={`Categoría ${
-            activeCounts.category ? `(${activeCounts.category})` : ""
-          }`}
+          title={`Categoría ${activeCounts.category ? `(${activeCounts.category})` : ""
+            }`}
           k="category"
         >
           <ul className="space-y-2">
@@ -260,12 +259,12 @@ export default function Filters() {
           />
           <div className="absolute inset-y-0 left-0 w-80 max-w-[80%] overflow-auto bg-light-100 p-4 shadow-xl">
             <div className="mb-2 flex items-center justify-between">
-              <h3 className="text-body-medium">Filters</h3>
+              <h3 className="text-body-medium">Filtros</h3>
               <button
                 className="text-caption text-dark-700 underline"
                 onClick={clearAll}
               >
-                Clear all
+                Limpiar
               </button>
             </div>
             {/* Reuse the same desktop content by rendering the component again */}

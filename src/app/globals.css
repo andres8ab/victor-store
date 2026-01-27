@@ -57,3 +57,12 @@
   --text-footnote--line-height: 18px;
   --text-footnote--font-weight: 400;
 }
+
+.cart-badge-small {
+  min-width: 1.15rem !important;
+  width: 1.15rem !important;
+  height: 1.15rem !important;
+  line-height: 1.15rem !important;
+  font-size: 0.65rem !important;
+  padding: 0 !important;
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Badge } from "primereact/badge";
 import { useCartStore } from "@/store/cart";
 import { useEffect, useRef } from "react";
 import { getCart } from "@/lib/actions/cart";
@@ -10,7 +11,7 @@ export function CartLink() {
   const itemCount = useCartStore((state) => state.getItemCount());
   const syncCountFromServer = useCartStore((state) => state.syncCountFromServer);
   const prevCountRef = useRef(itemCount);
-  const countElementRef = useRef<HTMLSpanElement>(null);
+  const badgeElementRef = useRef<HTMLSpanElement>(null);
 
   const { user } = useAuth();
 
@@ -20,7 +21,7 @@ export function CartLink() {
       syncCountFromServer(0);
       return;
     }
-    
+
     const syncCartCount = async () => {
       try {
         const cartItems = await getCart(user.id);
@@ -35,13 +36,18 @@ export function CartLink() {
 
   useEffect(() => {
     // Animate when count changes and increases
-    if (itemCount !== prevCountRef.current && itemCount > prevCountRef.current && itemCount > 0 && countElementRef.current) {
+    if (
+      itemCount !== prevCountRef.current &&
+      itemCount > prevCountRef.current &&
+      itemCount > 0 &&
+      badgeElementRef.current
+    ) {
       // Trigger animation by adding/removing class
-      countElementRef.current.classList.add("cart-count-animate");
+      badgeElementRef.current.classList.add("cart-count-animate");
       const timer = setTimeout(() => {
-        countElementRef.current?.classList.remove("cart-count-animate");
+        badgeElementRef.current?.classList.remove("cart-count-animate");
       }, 600);
-      
+
       prevCountRef.current = itemCount;
       return () => clearTimeout(timer);
     }
@@ -49,31 +55,19 @@ export function CartLink() {
   }, [itemCount]);
 
   return (
-    <>
-      <style>{`
-        .cart-count-animate {
-          animation: cartPulse 0.6s ease-in-out;
-        }
-        @keyframes cartPulse {
-          0% { transform: scale(1); }
-          50% { transform: scale(1.25); color: var(--color-green); font-weight: 500; }
-          100% { transform: scale(1); }
-        }
-      `}</style>
-      <Link 
-        href="/cart" 
-        className="text-body text-dark-900 transition-colors hover:text-dark-700"
-      >
-        Mi Carrito {itemCount > 0 && (
-          <span 
-            ref={countElementRef}
-            className="inline-block"
-          >
-            ({itemCount})
-          </span>
+    <Link
+      href="/cart"
+      className="relative flex items-center text-body text-dark-900 transition-colors hover:text-dark-700"
+    >
+      <i className="pi pi-shopping-cart p-overlay-badge" style={{ fontSize: "1.2rem" }}>
+        {itemCount > 0 && (
+          <Badge
+            value={itemCount}
+            severity="danger"
+            className="cart-badge-small"
+          />
         )}
-      </Link>
-    </>
+      </i>
+    </Link>
   );
 }
-

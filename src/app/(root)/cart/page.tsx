@@ -7,7 +7,7 @@ import { getCurrentUser } from "@/lib/auth/actions";
 
 export default async function CartPage() {
   const user = await getCurrentUser();
-  
+
   if (!user) {
     redirect("/sign-in");
   }
@@ -15,8 +15,8 @@ export default async function CartPage() {
   const cartItems = await getCart(user.id);
 
   const subtotal = cartItems.reduce((sum, item) => {
-    const price = item.variant.salePrice 
-      ? Number(item.variant.salePrice) 
+    const price = item.variant.salePrice
+      ? Number(item.variant.salePrice)
       : Number(item.variant.price);
     return sum + price * item.quantity;
   }, 0);
@@ -44,8 +44,8 @@ export default async function CartPage() {
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_400px]">
           <div className="space-y-4">
             {cartItems.map((item) => {
-              const price = item.variant.salePrice 
-                ? Number(item.variant.salePrice) 
+              const price = item.variant.salePrice
+                ? Number(item.variant.salePrice)
                 : Number(item.variant.price);
               const itemTotal = price * item.quantity;
 
@@ -72,7 +72,7 @@ export default async function CartPage() {
                       {item.product.name}
                     </Link>
                     <p className="text-caption text-dark-700 mt-1">
-                      SKU: {item.variant.sku}
+                      {item.variant.name}
                     </p>
                     <p className="text-body text-dark-900 mt-2">
                       ${price.toFixed(2)} c/u
@@ -96,7 +96,7 @@ export default async function CartPage() {
           <div className="lg:sticky lg:top-20 h-fit">
             <div className="rounded-lg border border-light-300 p-6 space-y-4">
               <h2 className="text-heading-3 text-dark-900">Resumen del Pedido</h2>
-              
+
               <div className="space-y-2 border-b border-light-300 pb-4">
                 <div className="flex justify-between text-body text-dark-700">
                   <span>Subtotal</span>

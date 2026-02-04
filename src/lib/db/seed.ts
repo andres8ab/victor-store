@@ -297,21 +297,17 @@ async function seed() {
             Math.random() < 0.3
               ? Number((priceNum - randInt(5000, 50000)).toFixed(2))
               : null;
-          const sku = `VICTOR-${insertedProduct.id.slice(
-            0,
-            8,
-          )}-${color.slug.toUpperCase()}-${size.slug.toUpperCase()}`;
+
+          const variantName = `${color.name} - ${size.name}`;
+
           const variant = insertVariantSchema.parse({
             productId: insertedProduct.id,
-            sku,
+            name: variantName,
             price: priceNum.toFixed(2),
             salePrice:
               discountedNum !== null ? discountedNum.toFixed(2) : undefined,
-            colorId: color.id,
-            sizeId: size.id,
             inStock: randInt(5, 50),
-            weight: Number((Math.random() * 1 + 0.5).toFixed(2)),
-            dimensions: { length: 30, width: 20, height: 12 },
+            isActive: true,
           });
           const retV = await db
             .insert(productVariants)

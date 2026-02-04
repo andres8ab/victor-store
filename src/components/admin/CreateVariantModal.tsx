@@ -5,41 +5,24 @@ import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import { InputNumber } from "primereact/inputnumber";
-import { Dropdown } from "primereact/dropdown";
 import ImageUpload from "./ImageUpload";
 import { createProductVariant } from "@/lib/actions/admin/products";
-
-type Color = {
-    id: string;
-    name: string;
-};
-
-type Size = {
-    id: string;
-    name: string;
-};
 
 interface CreateVariantModalProps {
     isOpen: boolean;
     onClose: () => void;
     productId: string;
-    colors: Color[];
-    sizes: Size[];
 }
 
 export default function CreateVariantModal({
     isOpen,
     onClose,
     productId,
-    colors,
-    sizes,
 }: CreateVariantModalProps) {
-    const [sku, setSku] = useState("");
+    const [name, setName] = useState("");
     const [price, setPrice] = useState<number | null>(null);
     const [salePrice, setSalePrice] = useState<number | null>(null);
     const [stock, setStock] = useState<number>(0);
-    const [colorId, setColorId] = useState<string | null>(null);
-    const [sizeId, setSizeId] = useState<string | null>(null);
     const [images, setImages] = useState<string[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -48,6 +31,11 @@ export default function CreateVariantModal({
         setIsSubmitting(true);
 
         try {
+            if (!name) {
+                alert("El nombre es requerido");
+                setIsSubmitting(false);
+                return;
+            }
             if (!price) {
                 alert("El precio es requerido");
                 setIsSubmitting(false);
@@ -56,25 +44,22 @@ export default function CreateVariantModal({
 
             const result = await createProductVariant({
                 productId,
-                sku,
+                name,
                 price: price.toString(),
                 salePrice: salePrice ? salePrice.toString() : null,
-                colorId,
-                sizeId,
                 inStock: stock,
                 images,
+                image: images[0] || null, // Use first image as main variant image
                 isActive: true,
             });
 
             if (result.success) {
                 onClose();
                 // Reset form
-                setSku("");
+                setName("");
                 setPrice(null);
                 setSalePrice(null);
                 setStock(0);
-                setColorId(null);
-                setSizeId(null);
                 setImages([]);
             }
         } catch (error) {
@@ -95,16 +80,16 @@ export default function CreateVariantModal({
             <form onSubmit={handleSubmit} className="space-y-6 pt-4">
                 <div className="space-y-4">
                     <div className="flex flex-col gap-2">
-                        <label htmlFor="sku" className="text-body-medium text-dark-900">
-                            SKU
+                        <label htmlFor="name" className="text-body-medium text-dark-900">
+                            Nombre de la Variante
                         </label>
                         <InputText
-                            id="sku"
-                            value={sku}
-                            onChange={(e) => setSku(e.target.value)}
+                            id="name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
                             required
                             className="w-full"
-                            placeholder="Ej: BAT-WIL-800"
+                            placeholder="Ej: Rojo, Talla M, Pack x3"
                         />
                     </div>
 
@@ -144,54 +129,18 @@ export default function CreateVariantModal({
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                        <div className="flex flex-col gap-2">
-                            <label htmlFor="color" className="text-body-medium text-dark-900">
-                                Color
-                            </label>
-                            <Dropdown
-                                id="color"
-                                value={colorId}
-                                onChange={(e) => setColorId(e.value)}
-                                options={colors}
-                                optionLabel="name"
-                                optionValue="id"
-                                placeholder="Seleccionar"
-                                className="w-full"
-                                showClear
-                            />
-                        </div>
-
-                        <div className="flex flex-col gap-2">
-                            <label htmlFor="size" className="text-body-medium text-dark-900">
-                                Medida/Talla
-                            </label>
-                            <Dropdown
-                                id="size"
-                                value={sizeId}
-                                onChange={(e) => setSizeId(e.value)}
-                                options={sizes}
-                                optionLabel="name"
-                                optionValue="id"
-                                placeholder="Seleccionar"
-                                className="w-full"
-                                showClear
-                            />
-                        </div>
-
-                        <div className="flex flex-col gap-2">
-                            <label htmlFor="stock" className="text-body-medium text-dark-900">
-                                Stock Inicial
-                            </label>
-                            <InputNumber
-                                id="stock"
-                                value={stock}
-                                onValueChange={(e) => setStock(e.value ?? 0)}
-                                required
-                                className="w-full"
-                                useGrouping={false}
-                            />
-                        </div>
+                    <div className="flex flex-col gap-2">
+                        <label htmlFor="stock" className="text-body-medium text-dark-900">
+                            Stock Inicial
+                        </label>
+                        <InputNumber
+                            id="stock"
+                            value={stock}
+                            onValueChange={(e) => setStock(e.value ?? 0)}
+                            required
+                            className="w-full"
+                            useGrouping={false}
+                        />
                     </div>
 
                     <div className="flex flex-col gap-2">

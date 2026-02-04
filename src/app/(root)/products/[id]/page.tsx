@@ -1,11 +1,9 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import {
-  Card,
   CollapsibleSection,
-  ProductGallery,
-  VariantSelector,
-  AddToCartButton,
+  Card,
+  ProductDetails,
 } from "@/components";
 import { Star } from "lucide-react";
 import {
@@ -15,13 +13,6 @@ import {
   type Review,
   type RecommendedProduct,
 } from "@/lib/actions/product";
-
-type GalleryVariant = { id: string; specification: string | null };
-
-function formatPrice(price: number | null | undefined) {
-  if (price === null || price === undefined) return undefined;
-  return `$${price.toFixed(2)}`;
-}
 
 function NotFoundBlock() {
   return (
@@ -55,9 +46,8 @@ async function ReviewsSection({ productId }: { productId: string }) {
           {[1, 2, 3, 4, 5].map((i) => (
             <Star
               key={i}
-              className={`h-4 w-4 ${
-                i <= Math.round(avg) ? "fill-[--color-dark-900]" : ""
-              }`}
+              className={`h-4 w-4 ${i <= Math.round(avg) ? "fill-[--color-dark-900]" : ""
+                }`}
             />
           ))}
         </span>
@@ -75,9 +65,8 @@ async function ReviewsSection({ productId }: { productId: string }) {
                   {[1, 2, 3, 4, 5].map((i) => (
                     <Star
                       key={i}
-                      className={`h-4 w-4 ${
-                        i <= r.rating ? "fill-[--color-dark-900]" : ""
-                      }`}
+                      className={`h-4 w-4 ${i <= r.rating ? "fill-[--color-dark-900]" : ""
+                        }`}
                     />
                   ))}
                 </span>
@@ -150,42 +139,6 @@ export default async function ProductDetailPage({
 
   const { product, variants, images } = data;
 
-  // Collect all images sorted by primary and sort order
-  const allImages = images
-    .filter((img) => typeof img.url === "string" && img.url.trim().length > 0)
-    .sort((a, b) => {
-      if (a.isPrimary && !b.isPrimary) return -1;
-      if (!a.isPrimary && b.isPrimary) return 1;
-      return (a.sortOrder ?? 0) - (b.sortOrder ?? 0);
-    })
-    .map((img) => img.url);
-
-  // Prepare variants for selector
-  const variantOptions: GalleryVariant[] = variants.map((v) => ({
-    id: v.id,
-    specification: v.specification || null,
-  }));
-
-  const defaultVariant =
-    variants.find((v) => v.id === product.defaultVariantId) || variants[0];
-
-  const basePrice = defaultVariant ? Number(defaultVariant.price) : null;
-  const salePrice = defaultVariant?.salePrice
-    ? Number(defaultVariant.salePrice)
-    : null;
-
-  const displayPrice =
-    salePrice !== null && !Number.isNaN(salePrice) ? salePrice : basePrice;
-  const compareAt =
-    salePrice !== null && !Number.isNaN(salePrice) ? basePrice : null;
-
-  const discount =
-    compareAt && displayPrice && compareAt > displayPrice
-      ? Math.round(((compareAt - displayPrice) / compareAt) * 100)
-      : null;
-
-  const subtitle = product.category?.name ? product.category.name : undefined;
-
   return (
     <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <nav className="py-4 text-caption text-dark-700">
@@ -199,73 +152,11 @@ export default async function ProductDetailPage({
         / <span className="text-dark-900">{product.name}</span>
       </nav>
 
-      <section className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_480px]">
-        {allImages.length > 0 && (
-          <ProductGallery images={allImages} className="lg:sticky lg:top-6" />
-        )}
-
-        <div className="flex flex-col gap-6">
-          <header className="flex flex-col gap-2">
-            <h1 className="text-heading-2 text-dark-900">{product.name}</h1>
-            {subtitle && <p className="text-body text-dark-700">{subtitle}</p>}
-          </header>
-
-          <div className="flex items-center gap-3">
-            <p className="text-lead text-dark-900">
-              {formatPrice(displayPrice)}
-            </p>
-            {compareAt && (
-              <>
-                <span className="text-body text-dark-700 line-through">
-                  {formatPrice(compareAt)}
-                </span>
-                {discount !== null && (
-                  <span className="rounded-full border border-light-300 px-2 py-1 text-caption text-[--color-green]">
-                    {discount}% Dto
-                  </span>
-                )}
-              </>
-            )}
-          </div>
-
-          {variantOptions.length > 0 && (
-            <VariantSelector productId={product.id} variants={variantOptions} />
-          )}
-
-          <div className="flex flex-col gap-3">
-            <AddToCartButton
-              productVariantId={defaultVariant.id}
-              disabled={defaultVariant.inStock === 0}
-            />
-            {defaultVariant.inStock === 0 && (
-              <p className="text-caption text-red-600 text-center">
-                Producto agotado
-              </p>
-            )}
-          </div>
-
-          <CollapsibleSection title="Detalles del Producto" defaultOpen>
-            <p>{product.description}</p>
-          </CollapsibleSection>
-
-          <CollapsibleSection title="Envío y Devoluciones">
-            <p>
-              Envío estándar disponible. Consulta nuestras políticas de
-              devolución.
-            </p>
-          </CollapsibleSection>
-
-          <Suspense
-            fallback={
-              <CollapsibleSection title="Reviews">
-                <p className="text-body text-dark-700">Loading reviews…</p>
-              </CollapsibleSection>
-            }
-          >
-            <ReviewsSection productId={product.id} />
-          </Suspense>
-        </div>
-      </section>
+      <ProductDetails
+        product={product}
+        variants={variants}
+        images={images}
+      />
 
       <Suspense
         fallback={
@@ -286,6 +177,18 @@ export default async function ProductDetailPage({
       >
         <AlsoLikeSection productId={product.id} />
       </Suspense>
+
+      <div className="mt-16">
+        <Suspense
+          fallback={
+            <CollapsibleSection title="Reviews">
+              <p className="text-body text-dark-700">Loading reviews…</p>
+            </CollapsibleSection>
+          }
+        >
+          <ReviewsSection productId={product.id} />
+        </Suspense>
+      </div>
     </main>
   );
 }

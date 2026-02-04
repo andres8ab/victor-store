@@ -9,3 +9,4 @@ export { CartActions } from "./CartActions";
 export { CheckoutForm } from "./CheckoutForm";
 export { AddToCartButton } from "./AddToCartButton";
 export { CartLink } from "./CartLink";
+export { default as ProductDetails } from "./ProductDetails";

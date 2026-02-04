@@ -40,32 +40,30 @@ export async function createProduct(data: z.infer<typeof createProductSchema>) {
   await requireAdmin();
   const validated = createProductSchema.parse(data);
 
-  return await db.transaction(async (tx) => {
-    const [product] = await tx
-      .insert(products)
-      .values({
-        name: validated.name,
-        description: validated.description,
-        categoryId: validated.categoryId ?? null,
-        brandId: validated.brandId ?? null,
-        isPublished: validated.isPublished ?? false,
-      })
-      .returning();
+  const [product] = await db
+    .insert(products)
+    .values({
+      name: validated.name,
+      description: validated.description,
+      categoryId: validated.categoryId ?? null,
+      brandId: validated.brandId ?? null,
+      isPublished: validated.isPublished ?? false,
+    })
+    .returning();
 
-    if (validated.images && validated.images.length > 0) {
-      await tx.insert(productImages).values(
-        validated.images.map((url, index) => ({
-          productId: product.id,
-          url,
-          sortOrder: index,
-          isPrimary: index === 0,
-        })),
-      );
-    }
+  if (validated.images && validated.images.length > 0) {
+    await db.insert(productImages).values(
+      validated.images.map((url, index) => ({
+        productId: product.id,
+        url,
+        sortOrder: index,
+        isPrimary: index === 0,
+      })),
+    );
+  }
 
-    revalidatePath("/admin/products");
-    return { success: true, product };
-  });
+  revalidatePath("/admin/products");
+  return { success: true, product };
 }
 
 export async function createProductVariant(
@@ -74,40 +72,34 @@ export async function createProductVariant(
   await requireAdmin();
   const validated = createVariantSchema.parse(data);
 
-  return await db.transaction(async (tx) => {
-    const [variant] = await tx
-      .insert(productVariants)
-      .values({
+  const [variant] = await db
+    .insert(productVariants)
+    .values({
+      productId: validated.productId,
+      name: validated.name,
+      image: validated.image,
+      price: validated.price,
+      salePrice: validated.salePrice,
+      inStock: validated.inStock,
+      isActive: validated.isActive ?? true,
+    })
+    .returning();
+
+  if (validated.images && validated.images.length > 0) {
+    await db.insert(productImages).values(
+      validated.images.map((url, index) => ({
         productId: validated.productId,
-        sku: validated.sku,
-        price: validated.price,
-        salePrice: validated.salePrice,
-        colorId: validated.colorId,
-        sizeId: validated.sizeId,
-        inStock: validated.inStock,
-        isActive: validated.isActive ?? true,
-        weight: validated.weight,
-        dimensions: validated.dimensions,
-        specification: validated.specification,
-      })
-      .returning();
+        variantId: variant.id,
+        url,
+        sortOrder: index,
+        isPrimary: index === 0,
+      })),
+    );
+  }
 
-    if (validated.images && validated.images.length > 0) {
-      await tx.insert(productImages).values(
-        validated.images.map((url, index) => ({
-          productId: validated.productId,
-          variantId: variant.id,
-          url,
-          sortOrder: index,
-          isPrimary: index === 0,
-        })),
-      );
-    }
-
-    revalidatePath("/admin/products");
-    revalidatePath(`/admin/products/${validated.productId}`);
-    return { success: true, variant };
-  });
+  revalidatePath("/admin/products");
+  revalidatePath(`/admin/products/${validated.productId}`);
+  return { success: true, variant };
 }
 
 export async function updateProduct(data: z.infer<typeof updateProductSchema>) {
@@ -147,7 +139,7 @@ export async function toggleProductPublished(
   let parsedData = data;
   if (data instanceof FormData) {
     parsedData = {
-      id: data.get("id"),
+      id: data.get("id") as string,
       isPublished: data.get("isPublished") === "true",
     };
   }
@@ -242,14 +234,12 @@ export async function getProductWithVariantsForAdmin(productId: string) {
   const variants = await db
     .select({
       id: productVariants.id,
-      sku: productVariants.sku,
+      name: productVariants.name,
+      image: productVariants.image,
       price: sql<number>`${productVariants.price}::numeric`,
       salePrice: sql<number | null>`${productVariants.salePrice}::numeric`,
       inStock: productVariants.inStock,
       isActive: productVariants.isActive,
-      colorId: productVariants.colorId,
-      sizeId: productVariants.sizeId,
-      specification: productVariants.specification,
     })
     .from(productVariants)
     .where(eq(productVariants.productId, productId));

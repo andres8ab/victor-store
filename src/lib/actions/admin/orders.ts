@@ -57,7 +57,7 @@ export async function getOrderById(orderId: string) {
       quantity: orderItems.quantity,
       priceAtPurchase: sql<number>`${orderItems.priceAtPurchase}::numeric`,
       productName: products.name,
-      variantSku: productVariants.sku,
+      variantName: productVariants.name,
     })
     .from(orderItems)
     .innerJoin(productVariants, eq(orderItems.productVariantId, productVariants.id))
@@ -66,18 +66,18 @@ export async function getOrderById(orderId: string) {
 
   const shippingAddress = order.shippingAddressId
     ? await db
-        .select()
-        .from(addresses)
-        .where(eq(addresses.id, order.shippingAddressId))
-        .limit(1)
+      .select()
+      .from(addresses)
+      .where(eq(addresses.id, order.shippingAddressId))
+      .limit(1)
     : null;
 
   const billingAddress = order.billingAddressId
     ? await db
-        .select()
-        .from(addresses)
-        .where(eq(addresses.id, order.billingAddressId))
-        .limit(1)
+      .select()
+      .from(addresses)
+      .where(eq(addresses.id, order.billingAddressId))
+      .limit(1)
     : null;
 
   return {

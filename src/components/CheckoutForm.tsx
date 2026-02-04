@@ -66,7 +66,7 @@ export function CheckoutForm({
             customerInfo,
             orderResult.orderId,
           );
-          const whatsappUrl = `https://wa.me/573008943131?text=${encodeURIComponent(message)}`;
+          const whatsappUrl = `https://wa.me/57${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
           window.open(whatsappUrl, "_blank");
 
           // Redirect to success page
@@ -115,7 +115,7 @@ export function CheckoutForm({
     const itemsList = items
       .map(
         (item) =>
-          `• ${item.product.name} (${item.variant.sku}) - ${item.quantity}x $${(item.variant.salePrice ? Number(item.variant.salePrice) : Number(item.variant.price)).toFixed(2)}`,
+          `• ${item.product.name} - ${item.variant.name} - ${item.quantity}x $${(item.variant.salePrice ? Number(item.variant.salePrice) : Number(item.variant.price)).toFixed(2)}`,
       )
       .join("\n");
 

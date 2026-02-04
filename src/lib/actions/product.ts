@@ -8,7 +8,6 @@ import {
   eq,
   ilike,
   inArray,
-  isNull,
   or,
   sql,
   type SQL,
@@ -21,8 +20,6 @@ import {
   productImages,
   productVariants,
   products,
-  sizes,
-  colors,
   users,
   reviews,
   type SelectProduct,
@@ -31,8 +28,6 @@ import {
   type SelectBrand,
   type SelectCategory,
   type SelectGender,
-  type SelectColor,
-  type SelectSize,
 } from "@/lib/db/schema";
 
 import { NormalizedProductFilters } from "@/lib/utils/query";
@@ -76,8 +71,6 @@ export async function getAllProducts(
     conds.push(inArray(categories.slug, filters.categorySlugs));
   }
 
-  const hasSize = filters?.sizeSlugs?.length || 0 > 0;
-  const hasColor = filters?.colorSlugs?.length || 0 > 0;
   const hasPrice = !!(
     filters.priceMin !== undefined ||
     filters.priceMax !== undefined ||
@@ -85,28 +78,7 @@ export async function getAllProducts(
   );
 
   const variantConds: SQL[] = [];
-  if (hasSize) {
-    variantConds.push(
-      inArray(
-        productVariants.sizeId,
-        db
-          .select({ id: sizes.id })
-          .from(sizes)
-          .where(inArray(sizes.slug, filters.sizeSlugs)),
-      ),
-    );
-  }
-  if (hasColor) {
-    variantConds.push(
-      inArray(
-        productVariants.colorId,
-        db
-          .select({ id: colors.id })
-          .from(colors)
-          .where(inArray(colors.slug, filters.colorSlugs)),
-      ),
-    );
-  }
+
   if (hasPrice) {
     const priceBounds: SQL[] = [];
     if (filters?.priceRanges?.length) {
@@ -143,47 +115,22 @@ export async function getAllProducts(
       variantId: productVariants.id,
       productId: productVariants.productId,
       price: sql<number>`${productVariants.price}::numeric`.as("price"),
-      colorId: productVariants.colorId,
-      sizeId: productVariants.sizeId,
     })
     .from(productVariants)
     .where(variantConds.length ? and(...variantConds) : undefined)
     .as("v");
-  const imagesJoin = hasColor
-    ? db
-        .select({
-          productId: productImages.productId,
-          url: productImages.url,
-          rn: sql<number>`row_number() over (partition by ${productImages.productId} order by ${productImages.isPrimary} desc, ${productImages.sortOrder} asc)`.as(
-            "rn",
-          ),
-        })
-        .from(productImages)
-        .innerJoin(
-          productVariants,
-          eq(productVariants.id, productImages.variantId),
-        )
-        .where(
-          inArray(
-            productVariants.colorId,
-            db
-              .select({ id: colors.id })
-              .from(colors)
-              .where(inArray(colors.slug, filters.colorSlugs)),
-          ),
-        )
-        .as("pi")
-    : db
-        .select({
-          productId: productImages.productId,
-          url: productImages.url,
-          rn: sql<number>`row_number() over (partition by ${productImages.productId} order by ${productImages.isPrimary} desc, ${productImages.sortOrder} asc)`.as(
-            "rn",
-          ),
-        })
-        .from(productImages)
-        .where(isNull(productImages.variantId))
-        .as("pi");
+
+  // Simplified image join - strictly preferential to isPrimary, then sortOrder
+  const imagesJoin = db
+    .select({
+      productId: productImages.productId,
+      url: productImages.url,
+      rn: sql<number>`row_number() over (partition by ${productImages.productId} order by ${productImages.isPrimary} desc, ${productImages.sortOrder} asc)`.as(
+        "rn",
+      ),
+    })
+    .from(productImages)
+    .as("pi");
 
   const baseWhere = conds.length ? and(...conds) : undefined;
 
@@ -260,12 +207,7 @@ export type FullProduct = {
     category?: SelectCategory | null;
     gender?: SelectGender | null;
   };
-  variants: Array<
-    SelectVariant & {
-      color?: SelectColor | null;
-      size?: SelectSize | null;
-    }
-  >;
+  variants: SelectVariant[];
   images: SelectProductImage[];
 };
 
@@ -299,24 +241,14 @@ export async function getProduct(
       genderSlug: genders.slug,
 
       variantId: productVariants.id,
-      variantSku: productVariants.sku,
+      variantName: productVariants.name,
+      variantImage: productVariants.image,
       variantPrice: sql<number | null>`${productVariants.price}::numeric`,
       variantSalePrice: sql<
         number | null
       >`${productVariants.salePrice}::numeric`,
-      variantColorId: productVariants.colorId,
-      variantSizeId: productVariants.sizeId,
       variantInStock: productVariants.inStock,
-
-      colorId: colors.id,
-      colorName: colors.name,
-      colorSlug: colors.slug,
-      colorHex: colors.hexCode,
-
-      sizeId: sizes.id,
-      sizeName: sizes.name,
-      sizeSlug: sizes.slug,
-      sizeSortOrder: sizes.sortOrder,
+      variantIsActive: productVariants.isActive,
 
       imageId: productImages.id,
       imageUrl: productImages.url,
@@ -329,8 +261,6 @@ export async function getProduct(
     .leftJoin(categories, eq(categories.id, products.categoryId))
     .leftJoin(genders, eq(genders.id, products.genderId))
     .leftJoin(productVariants, eq(productVariants.productId, products.id))
-    .leftJoin(colors, eq(colors.id, productVariants.colorId))
-    .leftJoin(sizes, eq(sizes.id, productVariants.sizeId))
     .leftJoin(productImages, eq(productImages.productId, products.id))
     .where(eq(products.id, productId));
 
@@ -355,63 +285,45 @@ export async function getProduct(
     updatedAt: head.productUpdatedAt,
     brand: head.brandId
       ? {
-          id: head.brandId,
-          name: head.brandName!,
-          slug: head.brandSlug!,
-          logoUrl: head.brandLogoUrl ?? null,
-        }
+        id: head.brandId,
+        name: head.brandName!,
+        slug: head.brandSlug!,
+        logoUrl: head.brandLogoUrl ?? null,
+      }
       : null,
     category: head.categoryId
       ? {
-          id: head.categoryId,
-          name: head.categoryName!,
-          slug: head.categorySlug!,
-          parentId: null,
-        }
+        id: head.categoryId,
+        name: head.categoryName!,
+        slug: head.categorySlug!,
+        parentId: null,
+      }
       : null,
     gender: head.genderId
       ? {
-          id: head.genderId,
-          label: head.genderLabel!,
-          slug: head.genderSlug!,
-        }
+        id: head.genderId,
+        label: head.genderLabel!,
+        slug: head.genderSlug!,
+      }
       : null,
   };
 
-  const variantsMap = new Map<string, FullProduct["variants"][number]>();
+  const variantsMap = new Map<string, SelectVariant>();
   const imagesMap = new Map<string, SelectProductImage>();
 
   for (const r of rows) {
-    if (r.variantId && !variantsMap.has(r.variantId)) {
+    if (r.variantId && !variantsMap.has(r.variantId) && r.variantIsActive) {
       variantsMap.set(r.variantId, {
         id: r.variantId,
         productId: head.productId,
-        sku: r.variantSku!,
+        name: r.variantName!,
+        image: r.variantImage ?? null,
         price: r.variantPrice !== null ? String(r.variantPrice) : "0",
         salePrice:
           r.variantSalePrice !== null ? String(r.variantSalePrice) : null,
-        colorId: r.variantColorId!,
-        sizeId: r.variantSizeId!,
         inStock: r.variantInStock!,
-        weight: null,
-        dimensions: null,
+        isActive: r.variantIsActive!,
         createdAt: head.productCreatedAt,
-        color: r.colorId
-          ? {
-              id: r.colorId,
-              name: r.colorName!,
-              slug: r.colorSlug!,
-              hexCode: r.colorHex!,
-            }
-          : null,
-        size: r.sizeId
-          ? {
-              id: r.sizeId,
-              name: r.sizeName!,
-              slug: r.sizeSlug!,
-              sortOrder: r.sizeSortOrder!,
-            }
-          : null,
       });
     }
     if (r.imageId && !imagesMap.has(r.imageId)) {

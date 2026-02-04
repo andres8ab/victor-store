@@ -5,45 +5,26 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 import CreateVariantModal from "./CreateVariantModal";
 
-type Color = {
-  id: string;
-  name: string;
-};
-
-type Size = {
-  id: string;
-  name: string;
-};
-
 type Variant = {
   id: string;
-  sku: string;
+  name: string;
+  image: string | null;
   price: number;
   salePrice: number | null;
   inStock: number;
   isActive: boolean;
-  colorId: string | null;
-  sizeId: string | null;
-  specification: string | null;
 };
 
 export default function VariantsList({
   productId,
   variants,
-  colors,
-  sizes,
-  ToggleVariantButton,
 }: {
   productId: string;
   variants: Variant[];
-  colors: Color[];
-  sizes: Size[];
-  ToggleVariantButton: (props: {
-    variantId: string;
-    isActive: boolean;
-  }) => React.ReactNode;
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [localVariants, setLocalVariants] = useState<Variant[]>(variants);
+  const [loadingId, setLoadingId] = useState<string | null>(null);
   return (
     <div className="space-y-4">
       <button
@@ -58,15 +39,13 @@ export default function VariantsList({
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         productId={productId}
-        colors={colors}
-        sizes={sizes}
       />
 
-      {variants.length === 0 ? (
+      {localVariants.length === 0 ? (
         <p className="text-body text-dark-500">No hay variantes</p>
       ) : (
         <div className="space-y-2">
-          {variants.map((variant) => (
+          {localVariants.map((variant) => (
             <div
               key={variant.id}
               className={`rounded-lg border p-4 ${variant.isActive
@@ -78,7 +57,7 @@ export default function VariantsList({
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <p className="text-body-medium text-dark-900">
-                      SKU: {variant.sku}
+                      {variant.name}
                     </p>
                     <span
                       className={`inline-block rounded-full px-2 py-1 text-footnote ${variant.isActive
@@ -110,10 +89,43 @@ export default function VariantsList({
                   >
                     Editar
                   </Link>
-                  {ToggleVariantButton({
-                    variantId: variant.id,
-                    isActive: variant.isActive,
-                  })}
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (loadingId) return;
+                      setLoadingId(variant.id);
+                      try {
+                        const res = await fetch("/api/admin/variants/toggle", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            variantId: variant.id,
+                            isActive: !variant.isActive,
+                          }),
+                        });
+                        if (!res.ok) throw new Error("Request failed");
+                        setLocalVariants((prev) =>
+                          prev.map((v) => (v.id === variant.id ? { ...v, isActive: !v.isActive } : v)),
+                        );
+                      } catch (err) {
+                        console.error(err);
+                      } finally {
+                        setLoadingId(null);
+                      }
+                    }}
+                    className={`rounded-lg p-2 transition-colors ${variant.isActive
+                      ? "text-green hover:bg-light-200"
+                      : "text-dark-500 hover:bg-light-200"
+                      }`}
+                    title={variant.isActive ? "Desactivar" : "Activar"}
+                    disabled={!!loadingId}
+                  >
+                    {variant.isActive ? (
+                      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                    ) : (
+                      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.9 21.9 0 0 1 5.06-6.06"/><path d="M1 1l22 22"/></svg>
+                    )}
+                  </button>
                 </div>
               </div>
             </div>

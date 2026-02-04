@@ -16,7 +16,8 @@ export type CartItemWithDetails = {
   };
   variant: {
     id: string;
-    sku: string;
+    name: string;
+    image: string | null;
     price: string;
     salePrice: string | null;
     inStock: number;
@@ -41,7 +42,7 @@ export async function getCart(userId?: string): Promise<CartItemWithDetails[]> {
   }
 
   const cart = userCart[0];
-  
+
   const items = await db
     .select({
       id: cartItems.id,
@@ -51,7 +52,8 @@ export async function getCart(userId?: string): Promise<CartItemWithDetails[]> {
       productName: products.name,
       productDescription: products.description,
       variantId: productVariants.id,
-      variantSku: productVariants.sku,
+      variantName: productVariants.name,
+      variantImage: productVariants.image,
       variantPrice: productVariants.price,
       variantSalePrice: productVariants.salePrice,
       variantInStock: productVariants.inStock,
@@ -61,21 +63,21 @@ export async function getCart(userId?: string): Promise<CartItemWithDetails[]> {
     .innerJoin(products, eq(productVariants.productId, products.id))
     .where(eq(cartItems.cartId, cart.id));
 
-  // Get images for products
+  // Get images for products (fallback if variant has no image)
   const productIds = items.map(item => item.productId);
   const images = productIds.length > 0
     ? await db
-        .select({
-          productId: productImages.productId,
-          url: productImages.url,
-        })
-        .from(productImages)
-        .where(
-          and(
-            eq(productImages.isPrimary, true),
-            inArray(productImages.productId, productIds)
-          )
+      .select({
+        productId: productImages.productId,
+        url: productImages.url,
+      })
+      .from(productImages)
+      .where(
+        and(
+          eq(productImages.isPrimary, true),
+          inArray(productImages.productId, productIds)
         )
+      )
     : [];
 
   const imageMap = new Map(images.map(img => [img.productId, img.url]));
@@ -91,12 +93,13 @@ export async function getCart(userId?: string): Promise<CartItemWithDetails[]> {
     },
     variant: {
       id: item.variantId,
-      sku: item.variantSku,
+      name: item.variantName,
+      image: item.variantImage,
       price: item.variantPrice,
       salePrice: item.variantSalePrice,
       inStock: item.variantInStock,
     },
-    imageUrl: imageMap.get(item.productId) ?? null,
+    imageUrl: item.variantImage || imageMap.get(item.productId) || null,
   }));
 }
 

@@ -1,46 +1,14 @@
 import { redirect } from "next/navigation";
 import { isAdmin } from "@/lib/auth/admin";
-import { getProductWithVariantsForAdmin } from "@/lib/actions/admin/products";
+import { getProductWithVariantsForAdmin, toggleProductPublished } from "@/lib/actions/admin/products";
 import { getAllCategoriesForAdmin } from "@/lib/actions/admin/categories";
 import { getAllBrandsForAdmin } from "@/lib/actions/admin/brands";
-import { getAllColors, getAllSizes } from "@/lib/actions/admin/filters";
-import { toggleProductPublished, toggleVariantActive } from "@/lib/actions/admin/products";
 import Link from "next/link";
-import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import ProductForm from "@/components/admin/ProductForm";
 import VariantsList from "@/components/admin/VariantsList";
 
-async function ToggleVariantButton({
-  variantId,
-  isActive,
-}: {
-  variantId: string;
-  isActive: boolean;
-}) {
-  async function toggleAction() {
-    "use server";
-    await toggleVariantActive(variantId, !isActive);
-  }
-
-  return (
-    <form action={toggleAction}>
-      <button
-        type="submit"
-        className={`rounded-lg p-2 transition-colors ${isActive
-            ? "text-green hover:bg-light-200"
-            : "text-dark-500 hover:bg-light-200"
-          }`}
-        title={isActive ? "Desactivar" : "Activar"}
-      >
-        {isActive ? (
-          <Eye className="h-5 w-5" />
-        ) : (
-          <EyeOff className="h-5 w-5" />
-        )}
-      </button>
-    </form>
-  );
-}
+// Toggle is handled client-side via API
 
 export default async function AdminProductDetailPage({
   params,
@@ -57,8 +25,6 @@ export default async function AdminProductDetailPage({
   const product = await getProductWithVariantsForAdmin(id);
   const categories = await getAllCategoriesForAdmin();
   const brands = await getAllBrandsForAdmin();
-  const colors = await getAllColors();
-  const sizes = await getAllSizes();
 
   if (!product) {
     return (
@@ -89,8 +55,8 @@ export default async function AdminProductDetailPage({
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
           <span
             className={`inline-block rounded-full px-3 py-1 text-footnote ${product.isPublished
-                ? "bg-green/20 text-green"
-                : "bg-dark-500/20 text-dark-500"
+              ? "bg-green/20 text-green"
+              : "bg-dark-500/20 text-dark-500"
               }`}
           >
             {product.isPublished ? "Publicado" : "Borrador"}
@@ -126,13 +92,7 @@ export default async function AdminProductDetailPage({
 
         <div>
           <h2 className="text-heading-3 text-dark-900 mb-4">Variantes</h2>
-          <VariantsList
-            productId={product.id}
-            variants={product.variants}
-            colors={colors}
-            sizes={sizes}
-            ToggleVariantButton={ToggleVariantButton}
-          />
+          <VariantsList productId={product.id} variants={product.variants} />
         </div>
       </div>
     </div>

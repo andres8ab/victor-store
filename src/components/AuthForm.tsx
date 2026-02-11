@@ -5,6 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { Toast } from "primereact/toast";
+import { Dialog } from "primereact/dialog";
+import TermsContent from "@/components/legal/TermsContent";
+import PrivacyContent from "@/components/legal/PrivacyContent";
 
 type Props = {
   mode: "sign-in" | "sign-up";
@@ -16,6 +19,8 @@ type Props = {
 export default function AuthForm({ mode, onSubmit }: Props) {
   const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
   const router = useRouter();
   const toast = useRef<Toast>(null);
 
@@ -32,8 +37,8 @@ export default function AuthForm({ mode, onSubmit }: Props) {
         toast.current?.show({
           severity: "success",
           summary: "Éxito",
-          detail: mode === "sign-in" 
-            ? "Sesión iniciada correctamente" 
+          detail: mode === "sign-in"
+            ? "Sesión iniciada correctamente"
             : "Cuenta creada exitosamente",
           life: 3000,
         });
@@ -160,8 +165,8 @@ export default function AuthForm({ mode, onSubmit }: Props) {
           disabled={loading}
           className="mt-2 w-full rounded-full bg-dark-900 px-6 py-3 text-body-medium text-light-100 hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-dark-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading 
-            ? (mode === "sign-in" ? "Iniciando sesión..." : "Registrando...") 
+          {loading
+            ? (mode === "sign-in" ? "Iniciando sesión..." : "Registrando...")
             : (mode === "sign-in" ? "Iniciar Sesión" : "Registrarse")
           }
         </button>
@@ -169,16 +174,51 @@ export default function AuthForm({ mode, onSubmit }: Props) {
         {mode === "sign-up" && (
           <p className="text-center text-footnote text-dark-700">
             Al registrarte, aceptas nuestros{" "}
-            <a href="#" className="underline">
+            <button
+              type="button"
+              className="underline text-dark-900 hover:text-dark-700"
+              onClick={() => setShowTerms(true)}
+            >
               Términos de Servicio
-            </a>{" "}
+            </button>{" "}
             y{" "}
-            <a href="#" className="underline">
+            <button
+              type="button"
+              className="underline text-dark-900 hover:text-dark-700"
+              onClick={() => setShowPrivacy(true)}
+            >
               Política de Privacidad
-            </a>
+            </button>
           </p>
         )}
       </form>
-    </div>
+
+      <Dialog
+        header="Términos y Condiciones"
+        visible={showTerms}
+        style={{ width: "90vw", maxWidth: "800px" }}
+        onHide={() => setShowTerms(false)}
+        draggable={false}
+        resizable={false}
+        modal
+        className="p-fluid"
+      >
+        <TermsContent />
+      </Dialog>
+
+      <Dialog
+        header="Política de Privacidad"
+        visible={showPrivacy}
+        style={{ width: "90vw", maxWidth: "800px" }}
+        onHide={() => setShowPrivacy(false)}
+        draggable={false}
+        resizable={false}
+        modal
+        className="p-fluid"
+      >
+        <PrivacyContent />
+      </Dialog>
+
+    </div >
   );
 }

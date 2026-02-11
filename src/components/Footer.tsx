@@ -90,13 +90,13 @@ export default async function Footer() {
 
           <div className="flex gap-4 md:col-span-2 md:justify-end">
             {[
-              { src: "/x.svg", alt: "X" },
-              { src: "/facebook.svg", alt: "Facebook" },
-              { src: "/instagram.svg", alt: "Instagram" },
+              { src: "/x.svg", alt: "X", href: "#" },
+              { src: "/facebook.svg", alt: "Facebook", href: "https://www.facebook.com/people/Todo-Electrico-Victor/100063567141788/" },
+              { src: "/instagram.svg", alt: "Instagram", href: "https://www.instagram.com/todoelectrico_victor/" },
             ].map((s) => (
               <Link
                 key={s.alt}
-                href="#"
+                href={s.href}
                 aria-label={s.alt}
                 className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-light-100"
               >

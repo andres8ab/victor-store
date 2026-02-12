@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import CreateBrandModal from "./CreateBrandModal";
+import BrandModal from "./BrandModal";
 
 export default function CreateBrandButton() {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -17,7 +17,7 @@ export default function CreateBrandButton() {
                 Nueva Marca
             </button>
 
-            <CreateBrandModal
+            <BrandModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
             />

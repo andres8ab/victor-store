@@ -29,7 +29,7 @@ export default function VariantsList({
     <div className="space-y-4">
       <button
         onClick={() => setIsModalOpen(true)}
-        className="flex items-center gap-2 rounded-lg border border-light-300 bg-light-100 px-4 py-2 text-body-medium text-dark-900 hover:bg-light-200 transition-colors"
+        className="flex items-center cursor-pointer gap-2 rounded-lg border border-light-300 bg-light-100 px-4 py-2 text-body-medium text-dark-900 hover:bg-light-200 transition-colors"
       >
         <Plus className="h-5 w-5" />
         Nueva Variante
@@ -121,9 +121,9 @@ export default function VariantsList({
                     disabled={!!loadingId}
                   >
                     {variant.isActive ? (
-                      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z" /><circle cx="12" cy="12" r="3" /></svg>
                     ) : (
-                      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.9 21.9 0 0 1 5.06-6.06"/><path d="M1 1l22 22"/></svg>
+                      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.9 21.9 0 0 1 5.06-6.06" /><path d="M1 1l22 22" /></svg>
                     )}
                   </button>
                 </div>

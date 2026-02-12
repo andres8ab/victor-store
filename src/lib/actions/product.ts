@@ -3,6 +3,7 @@
 import {
   and,
   asc,
+  avg,
   count,
   desc,
   eq,
@@ -10,6 +11,8 @@ import {
   inArray,
   or,
   sql,
+  sum,
+  aliasedTable,
   type SQL,
 } from "drizzle-orm";
 import { db } from "@/lib/db";
@@ -22,6 +25,8 @@ import {
   products,
   users,
   reviews,
+  orders,
+  orderItems,
   type SelectProduct,
   type SelectVariant,
   type SelectProductImage,
@@ -461,4 +466,176 @@ export async function getRecommendedProducts(
     if (out.length >= 6) break;
   }
   return out;
+}
+
+export async function getLatestProducts(
+  limit: number = 6,
+): Promise<ProductListItem[]> {
+  return (
+    await getAllProducts({
+      sort: "newest",
+      limit,
+    })
+  ).products;
+}
+
+export async function getMostPurchasedProducts(
+  limit: number = 6,
+): Promise<ProductListItem[]> {
+  // Pre-aggregate purchase counts by product
+  // Use productVariants table directly here, unrelated to outer query alias issues
+  const purchaseStats = db
+    .select({
+      productId: productVariants.productId,
+      count: sum(orderItems.quantity).as("count"),
+    })
+    .from(orderItems)
+    .innerJoin(
+      productVariants,
+      eq(orderItems.productVariantId, productVariants.id),
+    )
+    .groupBy(productVariants.productId)
+    .as("ps");
+
+  const variantJoin = db
+    .select({
+      variantId: productVariants.id,
+      productId: productVariants.productId,
+      price: sql<number>`${productVariants.price}::numeric`.as("price"),
+    })
+    .from(productVariants)
+    .as("v");
+
+  const imagesJoin = db
+    .select({
+      productId: productImages.productId,
+      url: productImages.url,
+      rn: sql<number>`row_number() over (partition by ${productImages.productId} order by ${productImages.isPrimary} desc, ${productImages.sortOrder} asc)`.as(
+        "rn",
+      ),
+    })
+    .from(productImages)
+    .as("pi");
+
+  const priceAgg = {
+    minPrice: sql<number | null>`min(${variantJoin.price})`,
+    maxPrice: sql<number | null>`max(${variantJoin.price})`,
+  };
+
+  const imageAgg = sql<
+    string | null
+  >`max(case when ${imagesJoin.rn} = 1 then ${imagesJoin.url} else null end)`;
+
+  const rows = await db
+    .select({
+      id: products.id,
+      name: products.name,
+      createdAt: products.createdAt,
+      subtitle: genders.label,
+      minPrice: priceAgg.minPrice,
+      maxPrice: priceAgg.maxPrice,
+      imageUrl: imageAgg,
+      purchaseCount: sql<number>`coalesce(max(${purchaseStats.count}), 0)`,
+    })
+    .from(products)
+    .leftJoin(purchaseStats, eq(purchaseStats.productId, products.id))
+    .leftJoin(variantJoin, eq(variantJoin.productId, products.id)) // For price calculation
+    .leftJoin(imagesJoin, eq(imagesJoin.productId, products.id))
+    .leftJoin(genders, eq(genders.id, products.genderId))
+    .where(eq(products.isPublished, true))
+    .groupBy(products.id, products.name, products.createdAt, genders.label)
+    .orderBy(
+      desc(sql`coalesce(max(${purchaseStats.count}), 0)`),
+      desc(products.createdAt),
+    )
+    .limit(limit);
+
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    imageUrl: r.imageUrl,
+    minPrice: r.minPrice === null ? null : Number(r.minPrice),
+    maxPrice: r.maxPrice === null ? null : Number(r.maxPrice),
+    createdAt: r.createdAt,
+    subtitle: r.subtitle ? r.subtitle : null,
+  }));
+}
+
+export async function getFeaturedProducts(
+  limit: number = 6,
+): Promise<ProductListItem[]> {
+  // Products with highest average rating
+  const variantJoin = db
+    .select({
+      variantId: productVariants.id,
+      productId: productVariants.productId,
+      price: sql<number>`${productVariants.price}::numeric`.as("price"),
+    })
+    .from(productVariants)
+    .as("v");
+
+  const imagesJoin = db
+    .select({
+      productId: productImages.productId,
+      url: productImages.url,
+      rn: sql<number>`row_number() over (partition by ${productImages.productId} order by ${productImages.isPrimary} desc, ${productImages.sortOrder} asc)`.as(
+        "rn",
+      ),
+    })
+    .from(productImages)
+    .as("pi");
+
+  const priceAgg = {
+    minPrice: sql<number | null>`min(${variantJoin.price})`,
+    maxPrice: sql<number | null>`max(${variantJoin.price})`,
+  };
+
+  const imageAgg = sql<
+    string | null
+  >`max(case when ${imagesJoin.rn} = 1 then ${imagesJoin.url} else null end)`;
+
+  const rows = await db
+    .select({
+      id: products.id,
+      name: products.name,
+      createdAt: products.createdAt,
+      subtitle: genders.label,
+      minPrice: priceAgg.minPrice,
+      maxPrice: priceAgg.maxPrice,
+      imageUrl: imageAgg,
+      avgRating: avg(reviews.rating),
+    })
+    .from(products)
+    .leftJoin(reviews, eq(reviews.productId, products.id))
+    .leftJoin(variantJoin, eq(variantJoin.productId, products.id))
+    .leftJoin(imagesJoin, eq(imagesJoin.productId, products.id))
+    .leftJoin(genders, eq(genders.id, products.genderId))
+    .where(eq(products.isPublished, true))
+    .groupBy(products.id, products.name, products.createdAt, genders.label)
+    .orderBy(sql`avg(${reviews.rating}) DESC NULLS LAST`, desc(products.createdAt))
+    .limit(limit);
+
+  const mapped: ProductListItem[] = rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    imageUrl: r.imageUrl,
+    minPrice: r.minPrice === null ? null : Number(r.minPrice),
+    maxPrice: r.maxPrice === null ? null : Number(r.maxPrice),
+    createdAt: r.createdAt,
+    subtitle: r.subtitle ? r.subtitle : null,
+  }));
+
+  // If we don't have enough featured products (with reviews), fill with latest
+  if (mapped.length < limit) {
+    const existingIds = new Set(mapped.map((p) => p.id));
+    const latest = await getLatestProducts(limit * 2); // Fetch more to filter
+    for (const p of latest) {
+      if (!existingIds.has(p.id)) {
+        mapped.push(p);
+        if (mapped.length >= limit) break;
+      }
+    }
+  }
+
+  return mapped;
 }

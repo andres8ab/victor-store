@@ -5,38 +5,52 @@ import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import ImageUpload from "./ImageUpload";
-import { createBrand } from "@/lib/actions/admin/brands";
+import { createBrand, updateBrand } from "@/lib/actions/admin/brands";
 
+type Brand = {
+    id: string;
+    name: string;
+    slug: string;
+    logoUrl: string | null;
+};
 
-interface CreateBrandModalProps {
+interface BrandModalProps {
     isOpen: boolean;
     onClose: () => void;
+    initialData?: Brand | null;
 }
 
-export default function CreateBrandModal({
+export default function BrandModal({
     isOpen,
     onClose,
-}: CreateBrandModalProps) {
+    initialData
+}: BrandModalProps) {
     const [name, setName] = useState("");
     const [slug, setSlug] = useState("");
     const [logoUrl, setLogoUrl] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Auto-generate slug from name
     useEffect(() => {
-        if (!slug && name) {
-            setSlug(name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
+        if (isOpen) {
+            if (initialData) {
+                setName(initialData.name);
+                setSlug(initialData.slug);
+                setLogoUrl(initialData.logoUrl);
+            } else {
+                setName("");
+                setSlug("");
+                setLogoUrl(null);
+            }
         }
-    }, [name, slug]);
-
-    // Better slugify on name change if slug hasn't been manually edited? 
-    // Actually, usually it's better to just let user type name and fill slug, but if they edit slug, stop auto-filling.
-    // For simplicity, I will just auto-fill on name change if slug is empty or matches previous slugified name.
+    }, [isOpen, initialData]);
 
     const handleNameChange = (val: string) => {
         setName(val);
-        const newSlug = val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-        setSlug(newSlug);
+        // Only auto-generate slug if creating, as per request to avoid changing urls for existing items inadvertently
+        if (!initialData) {
+            const newSlug = val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            setSlug(newSlug);
+        }
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -44,30 +58,44 @@ export default function CreateBrandModal({
         setIsSubmitting(true);
 
         try {
-            const result = await createBrand({
-                name,
-                slug,
-                logoUrl,
-            });
+            let result;
+            if (initialData) {
+                result = await updateBrand({
+                    id: initialData.id,
+                    name,
+                    slug,
+                    logoUrl,
+                });
+            } else {
+                result = await createBrand({
+                    name,
+                    slug,
+                    logoUrl,
+                });
+            }
 
             if (result.success) {
                 onClose();
-                // Reset form
-                setName("");
-                setSlug("");
-                setLogoUrl(null);
+                if (!initialData) {
+                    setName("");
+                    setSlug("");
+                    setLogoUrl(null);
+                }
             }
         } catch (error) {
-            console.error("Error creating brand:", error);
-            alert("Error al crear la marca");
+            console.error("Error saving brand:", error);
+            alert("Error al guardar la marca");
         } finally {
             setIsSubmitting(false);
         }
     };
 
+    const headerText = initialData ? "Editar Marca" : "Crear Nueva Marca";
+    const buttonText = isSubmitting ? "Guardando..." : (initialData ? "Guardar Cambios" : "Crear Marca");
+
     return (
         <Dialog
-            header="Crear Nueva Marca"
+            header={headerText}
             visible={isOpen}
             onHide={onClose}
             className="w-full max-w-lg"
@@ -102,7 +130,7 @@ export default function CreateBrandModal({
                             placeholder="Ej: nike"
                         />
                         <small className="text-dark-500">
-                            Identificador único para la URL. Se genera automáticamente pero puede editarse.
+                            Identificador único para la URL.
                         </small>
                     </div>
 
@@ -127,7 +155,7 @@ export default function CreateBrandModal({
                     />
                     <Button
                         type="submit"
-                        label={isSubmitting ? "Creando..." : "Crear Marca"}
+                        label={buttonText}
                         icon="pi pi-check"
                         className="bg-green border-green hover:bg-green/90"
                         loading={isSubmitting}

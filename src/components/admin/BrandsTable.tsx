@@ -2,10 +2,11 @@
 
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
-import Link from "next/link";
 import { Edit, Trash2 } from "lucide-react";
 import { deleteBrand } from "@/lib/actions/admin/brands";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import BrandModal from "./BrandModal";
 
 type Brand = {
   id: string;
@@ -20,6 +21,8 @@ type Props = {
 
 export default function BrandsTable({ brands }: Props) {
   const router = useRouter();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
 
   const handleDelete = async (brandId: string) => {
     if (confirm("¿Estás seguro de que deseas eliminar esta marca?")) {
@@ -27,14 +30,20 @@ export default function BrandsTable({ brands }: Props) {
       router.refresh();
     }
   };
+
+  const openEditModal = (brand: Brand) => {
+    setSelectedBrand(brand);
+    setIsModalOpen(true);
+  };
+
   const nameBodyTemplate = (rowData: Brand) => {
     return (
-      <Link
-        href={`/admin/brands/${rowData.id}`}
-        className="text-body-medium text-dark-900 hover:text-green transition-colors"
+      <button
+        onClick={() => openEditModal(rowData)}
+        className="text-body-medium text-dark-900 hover:text-green transition-colors text-left"
       >
         {rowData.name}
-      </Link>
+      </button>
     );
   };
 
@@ -53,13 +62,13 @@ export default function BrandsTable({ brands }: Props) {
   const actionsBodyTemplate = (rowData: Brand) => {
     return (
       <div className="flex items-center gap-2">
-        <Link
-          href={`/admin/brands/${rowData.id}`}
+        <button
+          onClick={() => openEditModal(rowData)}
           className="rounded-lg p-2 text-dark-700 hover:bg-light-200 transition-colors"
           title="Editar"
         >
           <Edit className="h-5 w-5" />
-        </Link>
+        </button>
         <button
           onClick={() => handleDelete(rowData.id)}
           className="rounded-lg p-2 text-red hover:bg-light-200 transition-colors"
@@ -72,41 +81,52 @@ export default function BrandsTable({ brands }: Props) {
   };
 
   return (
-    <div className="rounded-lg border border-light-300 bg-light-100 overflow-hidden">
-      <DataTable
-        value={brands}
-        emptyMessage="No hay marcas"
-        className="p-datatable-sm"
-        responsiveLayout="scroll"
-        paginator
-        rows={10}
-        rowsPerPageOptions={[10, 25, 50]}
-        paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
-        currentPageReportTemplate="{first} a {last} de {totalRecords}"
-      >
-        <Column
-          field="name"
-          header="Nombre"
-          body={nameBodyTemplate}
-          sortable
-          style={{ minWidth: "200px" }}
-        />
-        <Column
-          field="slug"
-          header="Slug"
-          sortable
-        />
-        <Column
-          field="logoUrl"
-          header="Logo"
-          body={logoBodyTemplate}
-        />
-        <Column
-          header="Acciones"
-          body={actionsBodyTemplate}
-          style={{ minWidth: "120px" }}
-        />
-      </DataTable>
-    </div>
+    <>
+      <div className="rounded-lg border border-light-300 bg-light-100 overflow-hidden">
+        <DataTable
+          value={brands}
+          emptyMessage="No hay marcas"
+          className="p-datatable-sm"
+          responsiveLayout="scroll"
+          paginator
+          rows={10}
+          rowsPerPageOptions={[10, 25, 50]}
+          paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
+          currentPageReportTemplate="{first} a {last} de {totalRecords}"
+        >
+          <Column
+            field="name"
+            header="Nombre"
+            body={nameBodyTemplate}
+            sortable
+            style={{ minWidth: "200px" }}
+          />
+          <Column
+            field="slug"
+            header="Slug"
+            sortable
+          />
+          <Column
+            field="logoUrl"
+            header="Logo"
+            body={logoBodyTemplate}
+          />
+          <Column
+            header="Acciones"
+            body={actionsBodyTemplate}
+            style={{ minWidth: "120px" }}
+          />
+        </DataTable>
+      </div>
+
+      <BrandModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedBrand(null);
+        }}
+        initialData={selectedBrand}
+      />
+    </>
   );
 }

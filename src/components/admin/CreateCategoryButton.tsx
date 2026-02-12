@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import CreateCategoryModal from "./CreateCategoryModal";
+import CategoryModal from "./CategoryModal";
 
 type Category = {
     id: string;
     name: string;
+    slug: string;
+    parentId?: string | null;
 };
 
 export default function CreateCategoryButton({ categories }: { categories: Category[] }) {
@@ -22,7 +24,7 @@ export default function CreateCategoryButton({ categories }: { categories: Categ
                 Nueva Categoría
             </button>
 
-            <CreateCategoryModal
+            <CategoryModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 categories={categories}

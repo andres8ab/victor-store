@@ -1,37 +1,63 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
-import { createCategory } from "@/lib/actions/admin/categories";
+import { createCategory, updateCategory } from "@/lib/actions/admin/categories";
 
 type Category = {
     id: string;
     name: string;
+    slug: string;
+    parentId?: string | null;
 };
 
-interface CreateCategoryModalProps {
+interface CategoryModalProps {
     isOpen: boolean;
     onClose: () => void;
     categories: Category[];
+    initialData?: Category | null;
 }
 
-export default function CreateCategoryModal({
+export default function CategoryModal({
     isOpen,
     onClose,
     categories,
-}: CreateCategoryModalProps) {
+    initialData
+}: CategoryModalProps) {
     const [name, setName] = useState("");
     const [slug, setSlug] = useState("");
     const [parentId, setParentId] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    useEffect(() => {
+        if (isOpen) {
+            if (initialData) {
+                setName(initialData.name);
+                setSlug(initialData.slug);
+                setParentId(initialData.parentId || null);
+            } else {
+                setName("");
+                setSlug("");
+                setParentId(null);
+            }
+        }
+    }, [isOpen, initialData]);
+
     const handleNameChange = (val: string) => {
         setName(val);
-        const newSlug = val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-        setSlug(newSlug);
+        // Only auto-generate slug if we are in create mode, or if the slug matches the old name-generated slug
+        // But simplest rule: if user hasn't manually edited slug, keep auto-generating.
+        // For simplicity in this refactor, I'll just auto-generate if it's not editing an existing one OR if we want to be smarter.
+        // Let's stick to the previous logic but maybe only if it's a new entry? 
+        // Actually, for editing, we might want to update slug too if name changes, but usually we don't want to break URLs.
+        // Let's only auto-update slug if it's a NEW category.
+        if (!initialData) {
+            const newSlug = val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            setSlug(newSlug);
+        }
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -39,30 +65,44 @@ export default function CreateCategoryModal({
         setIsSubmitting(true);
 
         try {
-            const result = await createCategory({
-                name,
-                slug,
-                parentId,
-            });
+            let result;
+            if (initialData) {
+                result = await updateCategory({
+                    id: initialData.id,
+                    name,
+                    slug,
+                    parentId,
+                });
+            } else {
+                result = await createCategory({
+                    name,
+                    slug,
+                    parentId,
+                });
+            }
 
             if (result.success) {
                 onClose();
-                // Reset form
-                setName("");
-                setSlug("");
-                setParentId(null);
+                if (!initialData) {
+                    setName("");
+                    setSlug("");
+                    setParentId(null);
+                }
             }
         } catch (error) {
-            console.error("Error creating category:", error);
-            alert("Error al crear la categoría");
+            console.error("Error saving category:", error);
+            alert("Error al guardar la categoría");
         } finally {
             setIsSubmitting(false);
         }
     };
 
+    const headerText = initialData ? "Editar Categoría" : "Crear Nueva Categoría";
+    const buttonText = isSubmitting ? "Guardando..." : (initialData ? "Guardar Cambios" : "Crear Categoría");
+
     return (
         <Dialog
-            header="Crear Nueva Categoría"
+            header={headerText}
             visible={isOpen}
             onHide={onClose}
             className="w-full max-w-lg"
@@ -112,7 +152,7 @@ export default function CreateCategoryModal({
                             id="category"
                             value={parentId}
                             onChange={(e) => setParentId(e.value)}
-                            options={categories}
+                            options={categories.filter(c => c.id !== initialData?.id)} // Prevent selecting itself as parent
                             optionLabel="name"
                             optionValue="id"
                             placeholder="Seleccionar Categoría Padre"
@@ -132,7 +172,7 @@ export default function CreateCategoryModal({
                     />
                     <Button
                         type="submit"
-                        label={isSubmitting ? "Creando..." : "Crear Categoría"}
+                        label={buttonText}
                         icon="pi pi-check"
                         className="bg-green border-green hover:bg-green/90"
                         loading={isSubmitting}

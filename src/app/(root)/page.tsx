@@ -1,41 +1,43 @@
-import { Card } from "@/components";
-import { getCurrentUser } from "@/lib/auth/actions";
-import { getAllProducts } from "@/lib/actions/product";
+import Hero from "@/components/home/Hero";
+import ProductCarousel from "@/components/home/ProductCarousel";
+import {
+  getFeaturedProducts,
+  getLatestProducts,
+  getMostPurchasedProducts,
+} from "@/lib/actions/product";
 
-const { products } = await getAllProducts({ limit: 6 });
+export const dynamic = "force-dynamic";
 
 const Home = async () => {
-  const user = await getCurrentUser();
+  const [latest, mostPurchased, featured] = await Promise.all([
+    getLatestProducts(8),
+    getMostPurchasedProducts(8),
+    getFeaturedProducts(8),
+  ]);
 
   return (
     <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <section aria-labelledby="latest" className="pb-12">
-        <h2 id="latest" className="mb-6 text-heading-3 text-dark-900">
-          Productos Destacados
-        </h2>
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {products.map((p) => {
-            const price =
-              p.minPrice !== null &&
-              p.maxPrice !== null &&
-              p.minPrice !== p.maxPrice
-                ? `$${p.minPrice.toFixed(2)} - $${p.maxPrice.toFixed(2)}`
-                : p.minPrice !== null
-                  ? p.minPrice
-                  : undefined;
-            return (
-              <Card
-                key={p.id}
-                title={p.name}
-                subtitle={p.subtitle ?? undefined}
-                imageSrc={p.imageUrl ?? "/parts/1.jpg"}
-                price={price}
-                href={`/products/${p.id}`}
-              />
-            );
-          })}
-        </div>
-      </section>
+      <div className="space-y-12 pb-12 pt-6">
+        <Hero />
+
+        {latest.length > 0 && (
+          <ProductCarousel title="Lo Más Nuevo" products={latest} />
+        )}
+
+        {mostPurchased.length > 0 && (
+          <ProductCarousel
+            title="Más Vendidos"
+            products={mostPurchased}
+          />
+        )}
+
+        {featured.length > 0 && (
+          <ProductCarousel
+            title="Destacados"
+            products={featured}
+          />
+        )}
+      </div>
     </main>
   );
 };

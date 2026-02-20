@@ -36,6 +36,16 @@ const createVariantSchema = insertVariantSchema.extend({
   images: z.array(z.string().url()).optional(),
 });
 
+const updateVariantSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(1),
+  price: z.string(),
+  salePrice: z.string().nullable().optional(),
+  inStock: z.number().int().min(0),
+  image: z.string().nullable().optional(),
+  images: z.array(z.string().url()).optional(),
+});
+
 export async function createProduct(data: z.infer<typeof createProductSchema>) {
   await requireAdmin();
   const validated = createProductSchema.parse(data);
@@ -99,6 +109,29 @@ export async function createProductVariant(
 
   revalidatePath("/admin/products");
   revalidatePath(`/admin/products/${validated.productId}`);
+  return { success: true, variant };
+}
+
+export async function updateProductVariant(
+  data: z.infer<typeof updateVariantSchema>,
+) {
+  await requireAdmin();
+  const validated = updateVariantSchema.parse(data);
+
+  const [variant] = await db
+    .update(productVariants)
+    .set({
+      name: validated.name,
+      price: validated.price,
+      salePrice: validated.salePrice ?? null,
+      inStock: validated.inStock,
+      image: validated.image ?? null,
+    })
+    .where(eq(productVariants.id, validated.id))
+    .returning();
+
+  revalidatePath("/admin/products");
+  revalidatePath(`/admin/products/${variant.productId}`);
   return { success: true, variant };
 }
 

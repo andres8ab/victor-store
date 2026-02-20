@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
 import CreateVariantModal from "./CreateVariantModal";
+import EditVariantModal from "./EditVariantModal";
 
 type Variant = {
   id: string;
@@ -22,13 +22,15 @@ export default function VariantsList({
   productId: string;
   variants: Variant[];
 }) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [editingVariant, setEditingVariant] = useState<Variant | null>(null);
   const [localVariants, setLocalVariants] = useState<Variant[]>(variants);
   const [loadingId, setLoadingId] = useState<string | null>(null);
+
   return (
     <div className="space-y-4">
       <button
-        onClick={() => setIsModalOpen(true)}
+        onClick={() => setIsCreateModalOpen(true)}
         className="flex items-center cursor-pointer gap-2 rounded-lg bg-green px-4 py-2 text-body-medium text-light-100 hover:bg-opacity-90 transition-colors"
       >
         <Plus className="h-5 w-5" />
@@ -36,9 +38,21 @@ export default function VariantsList({
       </button>
 
       <CreateVariantModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
         productId={productId}
+      />
+
+      <EditVariantModal
+        isOpen={!!editingVariant}
+        onClose={() => setEditingVariant(null)}
+        variant={editingVariant}
+        onUpdated={(updated) => {
+          setLocalVariants((prev) =>
+            prev.map((v) => (v.id === updated.id ? { ...v, ...updated } : v)),
+          );
+          setEditingVariant(null);
+        }}
       />
 
       {localVariants.length === 0 ? (
@@ -57,7 +71,7 @@ export default function VariantsList({
             </p>
           </div>
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => setIsCreateModalOpen(true)}
             className="mt-2 flex items-center cursor-pointer gap-2 rounded-lg bg-green px-4 py-2 text-body-medium text-light-100 transition-colors hover:bg-opacity-90"
           >
             <Plus className="h-4 w-4" />
@@ -103,13 +117,14 @@ export default function VariantsList({
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Link
-                    href={`/admin/products/${productId}/variants/${variant.id}`}
-                    className="rounded-lg p-2 text-dark-700 hover:bg-light-200 transition-colors"
+                  <button
+                    type="button"
+                    onClick={() => setEditingVariant(variant)}
+                    className="rounded-lg cursor-pointer p-2 text-dark-700 hover:bg-light-200 transition-colors"
                     title="Editar"
                   >
-                    Editar
-                  </Link>
+                    <Pencil className="h-4 w-4" />
+                  </button>
                   <button
                     type="button"
                     onClick={async () => {
@@ -134,7 +149,7 @@ export default function VariantsList({
                         setLoadingId(null);
                       }
                     }}
-                    className={`rounded-lg p-2 transition-colors ${variant.isActive
+                    className={`rounded-lg p-2 cursor-pointer transition-colors ${variant.isActive
                       ? "text-green hover:bg-light-200"
                       : "text-dark-500 hover:bg-light-200"
                       }`}

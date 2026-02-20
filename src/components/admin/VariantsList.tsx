@@ -29,7 +29,7 @@ export default function VariantsList({
     <div className="space-y-4">
       <button
         onClick={() => setIsModalOpen(true)}
-        className="flex items-center cursor-pointer gap-2 rounded-lg border border-light-300 bg-light-100 px-4 py-2 text-body-medium text-dark-900 hover:bg-light-200 transition-colors"
+        className="flex items-center cursor-pointer gap-2 rounded-lg bg-green px-4 py-2 text-body-medium text-light-100 hover:bg-opacity-90 transition-colors"
       >
         <Plus className="h-5 w-5" />
         Nueva Variante
@@ -42,7 +42,28 @@ export default function VariantsList({
       />
 
       {localVariants.length === 0 ? (
-        <p className="text-body text-dark-500">No hay variantes</p>
+        <div className="flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-light-300 bg-light-100 px-6 py-10 text-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-green/10 text-green">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+              <line x1="12" y1="22.08" x2="12" y2="12" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-body-medium text-dark-900">Este producto no tiene variantes</p>
+            <p className="mt-1 text-body text-dark-500">
+              Los clientes no podrán agregar este producto al carrito hasta que crees al menos una variante.
+            </p>
+          </div>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="mt-2 flex items-center cursor-pointer gap-2 rounded-lg bg-green px-4 py-2 text-body-medium text-light-100 transition-colors hover:bg-opacity-90"
+          >
+            <Plus className="h-4 w-4" />
+            Crear primera variante
+          </button>
+        </div>
       ) : (
         <div className="space-y-2">
           {localVariants.map((variant) => (

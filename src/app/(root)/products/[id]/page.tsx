@@ -95,7 +95,7 @@ async function AlsoLikeSection({ productId }: { productId: string }) {
   if (!recs.length) return null;
   return (
     <section className="mt-16">
-      <h2 className="mb-6 text-heading-3 text-dark-900">You Might Also Like</h2>
+      <h2 className="mb-6 text-heading-3 text-dark-900">También te podría interesar</h2>
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {recs.map((p) => (
           <Card
@@ -162,7 +162,7 @@ export default async function ProductDetailPage({
         fallback={
           <section className="mt-16">
             <h2 className="mb-6 text-heading-3 text-dark-900">
-              You Might Also Like
+              También te podría interesar
             </h2>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {Array.from({ length: 3 }).map((_, i) => (

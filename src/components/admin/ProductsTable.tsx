@@ -6,6 +6,8 @@ import Link from "next/link";
 import { Edit, Eye, EyeOff, Trash2 } from "lucide-react";
 import { toggleProductPublished, deleteProduct } from "@/lib/actions/admin/products";
 import { useRouter } from "next/navigation";
+import { Toast } from "primereact/toast";
+import { useRef } from "react";
 
 type Product = {
   id: string;
@@ -22,6 +24,7 @@ type Props = {
 
 export default function ProductsTable({ products }: Props) {
   const router = useRouter();
+  const toast = useRef<Toast>(null);
 
   const handleToggle = async (productId: string, isPublished: boolean) => {
     await toggleProductPublished({
@@ -34,6 +37,11 @@ export default function ProductsTable({ products }: Props) {
   const handleDelete = async (productId: string) => {
     if (confirm("¿Estás seguro de que deseas eliminar este producto?")) {
       await deleteProduct(productId);
+      toast.current?.show({
+        severity: "success",
+        summary: "Producto eliminado",
+        detail: "El producto ha sido eliminado correctamente",
+      });
       router.refresh();
     }
   };
@@ -51,11 +59,10 @@ export default function ProductsTable({ products }: Props) {
   const statusBodyTemplate = (rowData: Product) => {
     return (
       <span
-        className={`inline-block rounded-full px-3 py-1 text-footnote ${
-          rowData.isPublished
+        className={`inline-block rounded-full px-3 py-1 text-footnote ${rowData.isPublished
             ? "bg-green/20 text-green"
             : "bg-dark-500/20 text-dark-500"
-        }`}
+          }`}
       >
         {rowData.isPublished ? "Publicado" : "Borrador"}
       </span>
@@ -74,11 +81,10 @@ export default function ProductsTable({ products }: Props) {
         </Link>
         <button
           onClick={() => handleToggle(rowData.id, rowData.isPublished)}
-          className={`rounded-lg p-2 transition-colors ${
-            rowData.isPublished
+          className={`rounded-lg p-2 transition-colors ${rowData.isPublished
               ? "text-green hover:bg-light-200"
               : "text-dark-500 hover:bg-light-200"
-          }`}
+            }`}
           title={rowData.isPublished ? "Despublicar" : "Publicar"}
         >
           {rowData.isPublished ? (
@@ -100,6 +106,7 @@ export default function ProductsTable({ products }: Props) {
 
   return (
     <div className="rounded-lg border border-light-300 bg-light-100 overflow-hidden">
+      <Toast ref={toast} />
       <DataTable
         value={products}
         emptyMessage="No hay productos"

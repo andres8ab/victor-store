@@ -80,8 +80,8 @@ export default async function ProductsPage({
               {products.map((p) => {
                 const price =
                   p.minPrice !== null &&
-                    p.maxPrice !== null &&
-                    p.minPrice !== p.maxPrice
+                  p.maxPrice !== null &&
+                  p.minPrice !== p.maxPrice
                     ? `$${p.minPrice.toFixed(2)} - $${p.maxPrice.toFixed(2)}`
                     : p.minPrice !== null
                       ? p.minPrice
@@ -91,7 +91,7 @@ export default async function ProductsPage({
                     key={p.id}
                     title={p.name}
                     subtitle={p.subtitle ?? undefined}
-                    imageSrc={p.imageUrl ?? "/parts/1.jpg"}
+                    imageSrc={p.imageUrl ?? "/parts/noImage.png"}
                     price={price}
                     href={`/products/${p.id}`}
                   />

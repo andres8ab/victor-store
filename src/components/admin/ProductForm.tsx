@@ -12,6 +12,7 @@ type Product = {
   isPublished: boolean;
   categoryId: string | null;
   brandId: string | null;
+  inStock?: number | null;
 };
 
 type Category = {
@@ -44,6 +45,7 @@ export default function ProductForm({
     setIsSubmitting(true);
 
     const formData = new FormData(e.currentTarget);
+    const inStockRaw = formData.get("inStock") as string;
     const data = {
       id: product.id,
       name: formData.get("name") as string,
@@ -51,6 +53,7 @@ export default function ProductForm({
       categoryId: (formData.get("categoryId") as string) || null,
       brandId: (formData.get("brandId") as string) || null,
       isPublished: product.isPublished,
+      inStock: inStockRaw !== "" ? parseInt(inStockRaw, 10) : undefined,
     };
 
     try {
@@ -152,6 +155,24 @@ export default function ProductForm({
             </option>
           ))}
         </select>
+      </div>
+
+      <div>
+        <label
+          htmlFor="inStock"
+          className="block text-body-medium text-dark-900 mb-2"
+        >
+          Inventario
+        </label>
+        <input
+          type="number"
+          id="inStock"
+          name="inStock"
+          defaultValue={product.inStock ?? ""}
+          min={0}
+          step={1}
+          className="w-full rounded-lg border border-light-300 px-4 py-2 text-body text-dark-900 focus:outline-none focus:ring-2 focus:ring-green"
+        />
       </div>
 
       <button

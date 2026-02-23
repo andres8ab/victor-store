@@ -55,7 +55,7 @@ export default async function CategoriesPage() {
                       key={p.id}
                       title={p.name}
                       subtitle={p.subtitle ?? undefined}
-                      imageSrc={p.imageUrl ?? "/parts/1.jpg"}
+                      imageSrc={p.imageUrl ?? "/parts/noImage.png"}
                       price={price}
                       href={`/products/${p.id}`}
                     />

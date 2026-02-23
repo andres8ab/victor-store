@@ -1,23 +1,18 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { carts, cartItems, productVariants, products, productImages } from "@/lib/db/schema";
+import { carts, cartItems, products, productImages } from "@/lib/db/schema";
 import { eq, and, desc, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 export type CartItemWithDetails = {
   id: string;
-  productVariantId: string;
+  productId: string;
   quantity: number;
   product: {
     id: string;
     name: string;
     description: string;
-  };
-  variant: {
-    id: string;
-    name: string;
-    image: string | null;
     price: string;
     salePrice: string | null;
     inStock: number;
@@ -46,24 +41,19 @@ export async function getCart(userId?: string): Promise<CartItemWithDetails[]> {
   const items = await db
     .select({
       id: cartItems.id,
-      productVariantId: cartItems.productVariantId,
+      productId: cartItems.productId,
       quantity: cartItems.quantity,
-      productId: products.id,
       productName: products.name,
       productDescription: products.description,
-      variantId: productVariants.id,
-      variantName: productVariants.name,
-      variantImage: productVariants.image,
-      variantPrice: productVariants.price,
-      variantSalePrice: productVariants.salePrice,
-      variantInStock: productVariants.inStock,
+      productPrice: products.price,
+      productSalePrice: products.salePrice,
+      productInStock: products.inStock,
     })
     .from(cartItems)
-    .innerJoin(productVariants, eq(cartItems.productVariantId, productVariants.id))
-    .innerJoin(products, eq(productVariants.productId, products.id))
+    .innerJoin(products, eq(cartItems.productId, products.id))
     .where(eq(cartItems.cartId, cart.id));
 
-  // Get images for products (fallback if variant has no image)
+  // Get primary images for products
   const productIds = items.map(item => item.productId);
   const images = productIds.length > 0
     ? await db
@@ -84,42 +74,37 @@ export async function getCart(userId?: string): Promise<CartItemWithDetails[]> {
 
   return items.map(item => ({
     id: item.id,
-    productVariantId: item.productVariantId,
+    productId: item.productId,
     quantity: item.quantity,
     product: {
       id: item.productId,
       name: item.productName,
       description: item.productDescription,
+      price: item.productPrice,
+      salePrice: item.productSalePrice,
+      inStock: item.productInStock,
     },
-    variant: {
-      id: item.variantId,
-      name: item.variantName,
-      image: item.variantImage,
-      price: item.variantPrice,
-      salePrice: item.variantSalePrice,
-      inStock: item.variantInStock,
-    },
-    imageUrl: item.variantImage || imageMap.get(item.productId) || null,
+    imageUrl: imageMap.get(item.productId) || null,
   }));
 }
 
-export async function addToCart(productVariantId: string, userId: string, quantity: number = 1) {
+export async function addToCart(productId: string, userId: string, quantity: number = 1) {
   if (!userId) {
     return { success: false, requiresAuth: true };
   }
 
-  // Verify variant exists and is in stock
-  const variant = await db
+  // Verify product exists and is in stock
+  const product = await db
     .select()
-    .from(productVariants)
-    .where(eq(productVariants.id, productVariantId))
+    .from(products)
+    .where(eq(products.id, productId))
     .limit(1);
 
-  if (!variant.length) {
-    return { success: false, error: "Variante de producto no encontrada" };
+  if (!product.length) {
+    return { success: false, error: "Producto no encontrado" };
   }
 
-  if (variant[0].inStock < quantity) {
+  if (product[0].inStock < quantity) {
     return { success: false, error: "Stock insuficiente" };
   }
 
@@ -148,7 +133,7 @@ export async function addToCart(productVariantId: string, userId: string, quanti
     .where(
       and(
         eq(cartItems.cartId, cart.id),
-        eq(cartItems.productVariantId, productVariantId)
+        eq(cartItems.productId, productId)
       )
     )
     .limit(1);
@@ -156,7 +141,7 @@ export async function addToCart(productVariantId: string, userId: string, quanti
   if (existingItem.length) {
     // Update quantity
     const newQuantity = existingItem[0].quantity + quantity;
-    if (newQuantity > variant[0].inStock) {
+    if (newQuantity > product[0].inStock) {
       return { success: false, error: "Stock insuficiente" };
     }
     await db
@@ -167,7 +152,7 @@ export async function addToCart(productVariantId: string, userId: string, quanti
     // Add new item
     await db.insert(cartItems).values({
       cartId: cart.id,
-      productVariantId,
+      productId,
       quantity,
     });
   }
@@ -190,12 +175,12 @@ export async function updateCartItemQuantity(cartItemId: string, quantity: numbe
     .select({
       cartItemId: cartItems.id,
       cartId: cartItems.cartId,
-      productVariantId: cartItems.productVariantId,
-      variantInStock: productVariants.inStock,
+      productId: cartItems.productId,
+      productInStock: products.inStock,
     })
     .from(cartItems)
     .innerJoin(carts, eq(cartItems.cartId, carts.id))
-    .innerJoin(productVariants, eq(cartItems.productVariantId, productVariants.id))
+    .innerJoin(products, eq(cartItems.productId, products.id))
     .where(
       and(
         eq(cartItems.id, cartItemId),
@@ -208,7 +193,7 @@ export async function updateCartItemQuantity(cartItemId: string, quantity: numbe
     return { success: false, error: "Item no encontrado" };
   }
 
-  if (quantity > item[0].variantInStock) {
+  if (quantity > item[0].productInStock) {
     return { success: false, error: "Stock insuficiente" };
   }
 

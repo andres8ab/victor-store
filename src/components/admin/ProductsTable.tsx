@@ -14,7 +14,6 @@ type Product = {
   name: string;
   categoryName: string | null;
   brandName: string | null;
-  variantCount: number;
   isPublished: boolean;
 };
 
@@ -135,11 +134,6 @@ export default function ProductsTable({ products }: Props) {
           field="brandName"
           header="Marca"
           body={(rowData) => rowData.brandName || "-"}
-          sortable
-        />
-        <Column
-          field="variantCount"
-          header="Variantes"
           sortable
         />
         <Column

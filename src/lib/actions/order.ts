@@ -7,7 +7,7 @@ import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "../auth/actions";
 
 type CreateOrderItem = {
-  productVariantId: string;
+  productId: string;
   quantity: number;
   priceAtPurchase: number;
 };
@@ -99,7 +99,7 @@ export async function createOrder({
     await db.insert(orderItems).values(
       items.map((item) => ({
         orderId: order.id,
-        productVariantId: item.productVariantId,
+        productId: item.productId,
         quantity: item.quantity,
         priceAtPurchase: item.priceAtPurchase.toFixed(2),
       }))

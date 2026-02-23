@@ -3,14 +3,12 @@
 import { useState, useMemo } from "react";
 import { Truck, ShieldCheck, Heart } from "lucide-react";
 import ProductGallery from "./ProductGallery";
-import VariantSelector from "./VariantSelector";
 import { AddToCartButton } from "./AddToCartButton";
 import CollapsibleSection from "./CollapsibleSection";
 import type { FullProduct } from "@/lib/actions/product";
 
 interface ProductDetailsProps {
     product: FullProduct["product"];
-    variants: FullProduct["variants"];
     images: FullProduct["images"];
     reviewsCount?: number;
     reviewsAvg?: number;
@@ -24,22 +22,11 @@ function formatPrice(price: string | number | null | undefined) {
 
 export default function ProductDetails({
     product,
-    variants,
     images,
 }: ProductDetailsProps) {
-    // Find default variant
-    const defaultVariantId = product.defaultVariantId || variants[0]?.id;
-    const [selectedVariantId, setSelectedVariantId] = useState<string>(defaultVariantId || "");
-
-    // Computed values
-    const selectedVariant = useMemo(() =>
-        variants.find((v) => v.id === selectedVariantId) || variants[0],
-        [variants, selectedVariantId]);
-
-    // Derived price logic
-    const price = selectedVariant ? selectedVariant.price : null;
-    const salePrice = selectedVariant ? selectedVariant.salePrice : null;
-
+    // Derived price logic from single product
+    const price = product.price;
+    const salePrice = product.salePrice;
     const displayPrice = salePrice ? parseFloat(salePrice) : (price ? parseFloat(price) : null);
     const compareAt = salePrice && price ? parseFloat(price) : null;
     const discount = compareAt && displayPrice && compareAt > displayPrice
@@ -57,7 +44,6 @@ export default function ProductDetails({
 
         return all.map(img => ({
             url: img.url,
-            variantId: img.variantId,
             id: img.id
         })).filter(img => img.url && img.url.trim().length > 0);
     }, [images]);
@@ -98,25 +84,13 @@ export default function ProductDetails({
                     )}
                 </div>
 
-                {/* Variants */}
-                <VariantSelector
-                    variants={variants.map(v => ({
-                        id: v.id,
-                        name: v.name,
-                        image: v.image ?? null,
-                        inStock: v.inStock ?? 0
-                    }))}
-                    selectedVariantId={selectedVariantId}
-                    onSelectVariant={setSelectedVariantId}
-                />
-
                 {/* Actions */}
                 <div className="flex flex-col gap-3">
                     <AddToCartButton
-                        productVariantId={selectedVariantId}
-                        disabled={!selectedVariant || selectedVariant.inStock === 0}
+                        productId={product.id}
+                        disabled={product.inStock === 0}
                     />
-                    {selectedVariant?.inStock === 0 && (
+                    {product.inStock === 0 && (
                         <p className="text-caption text-red-600 text-center">
                             Producto agotado
                         </p>

@@ -180,7 +180,9 @@ export default async function AdminOrderDetailPage({
                 <p className="text-body-medium text-dark-900">
                   {item.productName}
                 </p>
-                <p className="text-caption text-dark-500">SKU: {item.variantSku}</p>
+                <p className="text-caption text-dark-500">
+                  ID de producto: {item.productId}
+                </p>
                 <p className="text-caption text-dark-500">
                   Cantidad: {item.quantity}
                 </p>

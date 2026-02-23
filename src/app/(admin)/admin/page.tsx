@@ -3,10 +3,10 @@ import { isAdmin } from "@/lib/auth/admin";
 import { getAllOrders, getMonthlySales } from "@/lib/actions/admin/orders";
 import { getAllUsers } from "@/lib/actions/admin/users";
 import { db } from "@/lib/db";
-import { products, productVariants } from "@/lib/db/schema";
+import { products } from "@/lib/db/schema";
 import { sql } from "drizzle-orm";
 import Link from "next/link";
-import { Package, ShoppingCart, Users, TrendingUp } from "lucide-react";
+import { Package, ShoppingCart } from "lucide-react";
 import MonthlySalesChart from "@/components/admin/MonthlySalesChart";
 
 export default async function AdminDashboard() {
@@ -22,14 +22,9 @@ export default async function AdminDashboard() {
     db
       .select({
         totalProducts: sql<number>`COUNT(DISTINCT ${products.id})::int`,
-        totalVariants: sql<number>`COUNT(${productVariants.id})::int`,
         publishedProducts: sql<number>`COUNT(DISTINCT CASE WHEN ${products.isPublished} THEN ${products.id} END)::int`,
       })
-      .from(products)
-      .leftJoin(
-        productVariants,
-        sql`${productVariants.productId} = ${products.id}`,
-      ),
+      .from(products),
     getMonthlySales(),
   ]);
 
@@ -51,18 +46,6 @@ export default async function AdminDashboard() {
               </p>
             </div>
             <Package className="h-8 w-8 text-dark-500" />
-          </div>
-        </div>
-
-        <div className="rounded-lg bg-light-100 p-6 border border-light-300">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-caption text-dark-500 mb-1">Variantes</p>
-              <p className="text-heading-3 text-dark-900">
-                {statsData?.totalVariants ?? 0}
-              </p>
-            </div>
-            <TrendingUp className="h-8 w-8 text-dark-500" />
           </div>
         </div>
 

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { updateProduct } from "@/lib/actions/admin/products";
 import { useRouter } from "next/navigation";
+import { Toast } from "primereact/toast";
 
 type Product = {
   id: string;
@@ -35,6 +36,7 @@ export default function ProductForm({
   brands: Brand[];
 }) {
   const router = useRouter();
+  const toast = useRef<Toast>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -46,16 +48,26 @@ export default function ProductForm({
       id: product.id,
       name: formData.get("name") as string,
       description: formData.get("description") as string,
-      categoryId: formData.get("categoryId") as string || null,
-      brandId: formData.get("brandId") as string || null,
+      categoryId: (formData.get("categoryId") as string) || null,
+      brandId: (formData.get("brandId") as string) || null,
       isPublished: product.isPublished,
     };
 
     try {
       await updateProduct(data);
+      toast.current?.show({
+        severity: "success",
+        summary: "Producto actualizado",
+        detail: "El producto ha sido actualizado correctamente",
+      });
       router.refresh();
     } catch (error) {
       console.error("Error updating product:", error);
+      toast.current?.show({
+        severity: "error",
+        summary: "Error",
+        detail: "Ha ocurrido un error al actualizar el producto",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -63,6 +75,7 @@ export default function ProductForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <Toast ref={toast} />
       <div>
         <label
           htmlFor="name"

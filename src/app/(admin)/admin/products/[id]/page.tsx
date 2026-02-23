@@ -6,7 +6,6 @@ import { getAllBrandsForAdmin } from "@/lib/actions/admin/brands";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import ProductForm from "@/components/admin/ProductForm";
-import VariantsList from "@/components/admin/VariantsList";
 
 // Toggle is handled client-side via API
 
@@ -88,11 +87,6 @@ export default async function AdminProductDetailPage({
             categories={categories}
             brands={brands}
           />
-        </div>
-
-        <div>
-          <h2 className="text-heading-3 text-dark-900 mb-4">Variantes</h2>
-          <VariantsList productId={product.id} variants={product.variants} />
         </div>
       </div>
     </div>

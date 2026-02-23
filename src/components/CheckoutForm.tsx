@@ -48,11 +48,11 @@ export function CheckoutForm({
         // Create order and send via WhatsApp
         const orderResult = await createOrder({
           items: cartItems.map((item) => ({
-            productVariantId: item.productVariantId,
+            productId: item.productId,
             quantity: item.quantity,
-            priceAtPurchase: item.variant.salePrice
-              ? Number(item.variant.salePrice)
-              : Number(item.variant.price),
+            priceAtPurchase: item.product.salePrice
+              ? Number(item.product.salePrice)
+              : Number(item.product.price),
           })),
           customerInfo,
           paymentMethod: "whatsapp",
@@ -78,11 +78,11 @@ export function CheckoutForm({
         // Payment gateway flow (Wompi/PayU)
         const orderResult = await createOrder({
           items: cartItems.map((item) => ({
-            productVariantId: item.productVariantId,
+            productId: item.productId,
             quantity: item.quantity,
-            priceAtPurchase: item.variant.salePrice
-              ? Number(item.variant.salePrice)
-              : Number(item.variant.price),
+            priceAtPurchase: item.product.salePrice
+              ? Number(item.product.salePrice)
+              : Number(item.product.price),
           })),
           customerInfo,
           paymentMethod: "payment",
@@ -115,7 +115,7 @@ export function CheckoutForm({
     const itemsList = items
       .map(
         (item) =>
-          `• ${item.product.name} - ${item.variant.name} - ${item.quantity}x $${(item.variant.salePrice ? Number(item.variant.salePrice) : Number(item.variant.price)).toFixed(2)}`,
+          `• ${item.product.name} - ${item.quantity}x $${(item.product.salePrice ? Number(item.product.salePrice) : Number(item.product.price)).toFixed(2)}`,
       )
       .join("\n");
 
@@ -328,13 +328,13 @@ ${info.notes ? `Notas: ${info.notes}` : ""}
 
             <div className="space-y-3 border-b border-light-300 pb-4">
               {cartItems.map((item) => {
-                const price = item.variant.salePrice
-                  ? Number(item.variant.salePrice)
-                  : Number(item.variant.price);
+                const price = item.product.salePrice
+                  ? Number(item.product.salePrice)
+                  : Number(item.product.price);
                 return (
                   <div key={item.id} className="flex gap-3">
                     {item.imageUrl && (
-                      <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg">
+                      <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg">
                         <Image
                           src={item.imageUrl}
                           alt={item.product.name}

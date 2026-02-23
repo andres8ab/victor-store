@@ -15,9 +15,9 @@ export default async function CartPage() {
   const cartItems = await getCart(user.id);
 
   const subtotal = cartItems.reduce((sum, item) => {
-    const price = item.variant.salePrice
-      ? Number(item.variant.salePrice)
-      : Number(item.variant.price);
+    const price = item.product.salePrice
+      ? Number(item.product.salePrice)
+      : Number(item.product.price);
     return sum + price * item.quantity;
   }, 0);
 
@@ -44,9 +44,9 @@ export default async function CartPage() {
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_400px]">
           <div className="space-y-4">
             {cartItems.map((item) => {
-              const price = item.variant.salePrice
-                ? Number(item.variant.salePrice)
-                : Number(item.variant.price);
+              const price = item.product.salePrice
+                ? Number(item.product.salePrice)
+                : Number(item.product.price);
               const itemTotal = price * item.quantity;
 
               return (
@@ -55,7 +55,7 @@ export default async function CartPage() {
                   className="flex gap-4 rounded-lg border border-light-300 p-4"
                 >
                   {item.imageUrl && (
-                    <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg">
+                    <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg">
                       <Image
                         src={item.imageUrl}
                         alt={item.product.name}
@@ -72,7 +72,7 @@ export default async function CartPage() {
                       {item.product.name}
                     </Link>
                     <p className="text-caption text-dark-700 mt-1">
-                      {item.variant.name}
+                      {item.product.description}
                     </p>
                     <p className="text-body text-dark-900 mt-2">
                       ${price.toFixed(2)} c/u
@@ -81,7 +81,7 @@ export default async function CartPage() {
                       <CartActions
                         cartItemId={item.id}
                         currentQuantity={item.quantity}
-                        maxQuantity={item.variant.inStock}
+                        maxQuantity={item.product.inStock}
                       />
                       <p className="text-body-medium text-dark-900">
                         Total: ${itemTotal.toFixed(2)}

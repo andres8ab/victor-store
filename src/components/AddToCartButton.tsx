@@ -8,10 +8,10 @@ import { useCartStore } from "@/store/cart";
 import { useAuth } from "@/hooks/useAuth";
 
 export function AddToCartButton({
-  productVariantId,
+  productId,
   disabled = false,
 }: {
-  productVariantId: string;
+  productId: string;
   disabled?: boolean;
 }) {
   const [loading, setLoading] = useState(false);
@@ -26,7 +26,7 @@ export function AddToCartButton({
     }
 
     setLoading(true);
-    const result = await addToCart(productVariantId, user.id, 1);
+    const result = await addToCart(productId, user.id, 1);
 
     if (result.success) {
       // Optimistically increment count

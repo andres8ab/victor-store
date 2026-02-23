@@ -137,7 +137,7 @@ export default async function ProductDetailPage({
     );
   }
 
-  const { product, variants, images } = data;
+  const { product, images } = data;
 
   return (
     <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -154,7 +154,6 @@ export default async function ProductDetailPage({
 
       <ProductDetails
         product={product}
-        variants={variants}
         images={images}
       />
 

@@ -1,18 +1,12 @@
 "use server";
 
 import { db } from "@/lib/db";
-import {
-  products,
-  productVariants,
-  productImages,
-  categories,
-  brands,
-} from "@/lib/db/schema";
+import { products, productImages, categories, brands } from "@/lib/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { requireAdmin } from "@/lib/auth/admin";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { insertProductImageSchema, insertVariantSchema } from "@/lib/db/schema";
+import { insertProductImageSchema } from "@/lib/db/schema";
 
 const createProductSchema = z.object({
   name: z.string().min(1),
@@ -30,20 +24,6 @@ const updateProductSchema = createProductSchema.extend({
 const toggleProductSchema = z.object({
   id: z.string().uuid(),
   isPublished: z.boolean(),
-});
-
-const createVariantSchema = insertVariantSchema.extend({
-  images: z.array(z.string().url()).optional(),
-});
-
-const updateVariantSchema = z.object({
-  id: z.string().uuid(),
-  name: z.string().min(1),
-  price: z.string(),
-  salePrice: z.string().nullable().optional(),
-  inStock: z.number().int().min(0),
-  image: z.string().nullable().optional(),
-  images: z.array(z.string().url()).optional(),
 });
 
 export async function createProduct(data: z.infer<typeof createProductSchema>) {
@@ -74,65 +54,6 @@ export async function createProduct(data: z.infer<typeof createProductSchema>) {
 
   revalidatePath("/admin/products");
   return { success: true, product };
-}
-
-export async function createProductVariant(
-  data: z.infer<typeof createVariantSchema>,
-) {
-  await requireAdmin();
-  const validated = createVariantSchema.parse(data);
-
-  const [variant] = await db
-    .insert(productVariants)
-    .values({
-      productId: validated.productId,
-      name: validated.name,
-      image: validated.image,
-      price: validated.price,
-      salePrice: validated.salePrice,
-      inStock: validated.inStock,
-      isActive: validated.isActive ?? true,
-    })
-    .returning();
-
-  if (validated.images && validated.images.length > 0) {
-    await db.insert(productImages).values(
-      validated.images.map((url, index) => ({
-        productId: validated.productId,
-        variantId: variant.id,
-        url,
-        sortOrder: index,
-        isPrimary: index === 0,
-      })),
-    );
-  }
-
-  revalidatePath("/admin/products");
-  revalidatePath(`/admin/products/${validated.productId}`);
-  return { success: true, variant };
-}
-
-export async function updateProductVariant(
-  data: z.infer<typeof updateVariantSchema>,
-) {
-  await requireAdmin();
-  const validated = updateVariantSchema.parse(data);
-
-  const [variant] = await db
-    .update(productVariants)
-    .set({
-      name: validated.name,
-      price: validated.price,
-      salePrice: validated.salePrice ?? null,
-      inStock: validated.inStock,
-      image: validated.image ?? null,
-    })
-    .where(eq(productVariants.id, validated.id))
-    .returning();
-
-  revalidatePath("/admin/products");
-  revalidatePath(`/admin/products/${variant.productId}`);
-  return { success: true, variant };
 }
 
 export async function updateProduct(data: z.infer<typeof updateProductSchema>) {
@@ -192,23 +113,6 @@ export async function toggleProductPublished(
   return { success: true };
 }
 
-export async function toggleVariantActive(
-  variantId: string,
-  isActive: boolean,
-) {
-  await requireAdmin();
-
-  await db
-    .update(productVariants)
-    .set({
-      isActive,
-    })
-    .where(eq(productVariants.id, variantId));
-
-  revalidatePath("/admin/products");
-  return { success: true };
-}
-
 export async function getAllProductsForAdmin() {
   await requireAdmin();
 
@@ -224,11 +128,6 @@ export async function getAllProductsForAdmin() {
       updatedAt: products.updatedAt,
       categoryName: categories.name,
       brandName: brands.name,
-      variantCount: sql<number>`(
-        SELECT COUNT(*)::int
-        FROM ${productVariants}
-        WHERE ${productVariants.productId} = ${products.id}
-      )`.as("variant_count"),
     })
     .from(products)
     .leftJoin(categories, eq(products.categoryId, categories.id))
@@ -263,22 +162,5 @@ export async function getProductWithVariantsForAdmin(productId: string) {
   if (!product) {
     return null;
   }
-
-  const variants = await db
-    .select({
-      id: productVariants.id,
-      name: productVariants.name,
-      image: productVariants.image,
-      price: sql<number>`${productVariants.price}::numeric`,
-      salePrice: sql<number | null>`${productVariants.salePrice}::numeric`,
-      inStock: productVariants.inStock,
-      isActive: productVariants.isActive,
-    })
-    .from(productVariants)
-    .where(eq(productVariants.productId, productId));
-
-  return {
-    ...product,
-    variants,
-  };
+  return product;
 }

@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { orders, orderItems, users, addresses, productVariants, products } from "@/lib/db/schema";
+import { orders, orderItems, users, addresses, products } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { requireAdmin } from "@/lib/auth/admin";
 import { sql } from "drizzle-orm";
@@ -53,15 +53,13 @@ export async function getOrderById(orderId: string) {
   const items = await db
     .select({
       id: orderItems.id,
-      productVariantId: orderItems.productVariantId,
+      productId: orderItems.productId,
       quantity: orderItems.quantity,
       priceAtPurchase: sql<number>`${orderItems.priceAtPurchase}::numeric`,
       productName: products.name,
-      variantName: productVariants.name,
     })
     .from(orderItems)
-    .innerJoin(productVariants, eq(orderItems.productVariantId, productVariants.id))
-    .innerJoin(products, eq(productVariants.productId, products.id))
+    .innerJoin(products, eq(orderItems.productId, products.id))
     .where(eq(orderItems.orderId, orderId));
 
   const shippingAddress = order.shippingAddressId

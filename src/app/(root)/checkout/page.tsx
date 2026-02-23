@@ -16,9 +16,9 @@ export default async function CheckoutPage() {
   }
 
   const subtotal = cartItems.reduce((sum, item) => {
-    const price = item.variant.salePrice 
-      ? Number(item.variant.salePrice) 
-      : Number(item.variant.price);
+    const price = item.product.salePrice 
+      ? Number(item.product.salePrice) 
+      : Number(item.product.price);
     return sum + price * item.quantity;
   }, 0);
 

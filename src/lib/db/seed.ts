@@ -8,7 +8,6 @@ import {
   collections,
   productCollections,
   products,
-  productVariants,
   productImages,
   insertGenderSchema,
   insertColorSchema,
@@ -17,17 +16,14 @@ import {
   insertCategorySchema,
   insertCollectionSchema,
   insertProductSchema,
-  insertVariantSchema,
   insertProductImageSchema,
   type InsertProduct,
-  type InsertVariant,
   type InsertProductImage,
 } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { mkdirSync, existsSync, cpSync } from "fs";
 import { join, basename } from "path";
 type ProductRow = typeof products.$inferSelect;
-type VariantRow = typeof productVariants.$inferSelect;
 
 type RGBHex = `#${string}`;
 
@@ -247,7 +243,7 @@ async function seed() {
       "15.jpg",
     ];
 
-    log("Creating products with variants and images");
+    log("Creating products with prices and images");
     const categoriesList = [
       componentesCat,
       herramientasCat,
@@ -264,12 +260,22 @@ async function seed() {
       const brandPick = allBrands[randInt(0, allBrands.length - 1)];
       const desc = `Repuesto eléctrico de calidad para ${name}. Ideal para instalaciones residenciales e industriales.`;
 
+      const priceNum = Number((randInt(10000, 200000) + 0.99).toFixed(2)); // Prices in COP
+      const discountedNum =
+        Math.random() < 0.3
+          ? Number((priceNum - randInt(5000, 50000)).toFixed(2))
+          : null;
+
       const product = insertProductSchema.parse({
         name,
         description: desc,
         categoryId: catPick?.id ?? null,
         genderId: gender?.id ?? null,
         brandId: brandPick?.id ?? null,
+        price: priceNum.toFixed(2),
+        salePrice: discountedNum !== null ? discountedNum.toFixed(2) : undefined,
+        inStock: randInt(5, 50),
+        isActive: true,
         isPublished: true,
       });
 
@@ -278,54 +284,6 @@ async function seed() {
         .values(product as InsertProduct)
         .returning();
       const insertedProduct = (retP as ProductRow[])[0];
-      const colorChoices = pick(
-        allColors,
-        randInt(2, Math.min(4, allColors.length)),
-      );
-      const sizeChoices = pick(
-        allSizes,
-        randInt(3, Math.min(6, allSizes.length)),
-      );
-
-      const variantIds: string[] = [];
-      let defaultVariantId: string | null = null;
-
-      for (const color of colorChoices) {
-        for (const size of sizeChoices) {
-          const priceNum = Number((randInt(10000, 200000) + 0.99).toFixed(2)); // Prices in COP
-          const discountedNum =
-            Math.random() < 0.3
-              ? Number((priceNum - randInt(5000, 50000)).toFixed(2))
-              : null;
-
-          const variantName = `${color.name} - ${size.name}`;
-
-          const variant = insertVariantSchema.parse({
-            productId: insertedProduct.id,
-            name: variantName,
-            price: priceNum.toFixed(2),
-            salePrice:
-              discountedNum !== null ? discountedNum.toFixed(2) : undefined,
-            inStock: randInt(5, 50),
-            isActive: true,
-          });
-          const retV = await db
-            .insert(productVariants)
-            .values(variant as InsertVariant)
-            .returning();
-          const created = (retV as VariantRow[])[0];
-          variantIds.push(created.id);
-          if (!defaultVariantId) defaultVariantId = created.id;
-        }
-      }
-
-      if (defaultVariantId) {
-        await db
-          .update(products)
-          .set({ defaultVariantId })
-          .where(eq(products.id, insertedProduct.id));
-      }
-
       const pickName = sourceImages[i % sourceImages.length];
       const src = join(sourceDir, pickName);
       const destName = `${insertedProduct.id}-${basename(pickName)}`;
@@ -354,7 +312,7 @@ async function seed() {
         });
       }
 
-      log(`Seeded product ${name} with ${variantIds.length} variants`);
+      log(`Seeded product ${name}`);
     }
 
     log("Seeding complete");

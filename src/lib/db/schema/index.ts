@@ -10,7 +10,6 @@ export * from "./categories";
 export * from "./collections";
 export * from "./products";
 export * from "./images";
-export * from "./variants";
 export * from "./reviews";
 export * from "./carts";
 export * from "./orders";

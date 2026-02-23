@@ -1,4 +1,12 @@
-import { pgTable, text, timestamp, uuid, boolean } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+  boolean,
+  numeric,
+  integer,
+} from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { z } from "zod";
 import { categories } from "./categories";
@@ -18,8 +26,11 @@ export const products = pgTable("products", {
   brandId: uuid("brand_id").references(() => brands.id, {
     onDelete: "set null",
   }),
+  price: numeric("price", { precision: 10, scale: 2 }).notNull().default("0"),
+  salePrice: numeric("sale_price", { precision: 10, scale: 2 }),
+  inStock: integer("in_stock").notNull().default(0),
+  isActive: boolean("is_active").notNull().default(true),
   isPublished: boolean("is_published").notNull().default(false),
-  defaultVariantId: uuid("default_variant_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -45,8 +56,11 @@ export const insertProductSchema = z.object({
   categoryId: z.string().uuid().optional().nullable(),
   genderId: z.string().uuid().optional().nullable(),
   brandId: z.string().uuid().optional().nullable(),
+  price: z.string().optional(),
+  salePrice: z.string().optional().nullable(),
+  inStock: z.number().int().nonnegative().optional(),
+  isActive: z.boolean().optional(),
   isPublished: z.boolean().optional(),
-  defaultVariantId: z.string().uuid().optional().nullable(),
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),
 });

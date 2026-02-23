@@ -2,11 +2,10 @@
 
 import { db } from "@/lib/db";
 import { products, productImages, categories, brands } from "@/lib/db/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { requireAdmin } from "@/lib/auth/admin";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { insertProductImageSchema } from "@/lib/db/schema";
 
 const createProductSchema = z.object({
   name: z.string().min(1),
@@ -15,6 +14,7 @@ const createProductSchema = z.object({
   brandId: z.string().uuid().nullable().optional(),
   isPublished: z.boolean().optional(),
   images: z.array(z.string().url()).optional(),
+  inStock: z.number().int().nonnegative().optional(),
 });
 
 const updateProductSchema = createProductSchema.extend({
@@ -38,6 +38,7 @@ export async function createProduct(data: z.infer<typeof createProductSchema>) {
       categoryId: validated.categoryId ?? null,
       brandId: validated.brandId ?? null,
       isPublished: validated.isPublished ?? false,
+      inStock: validated.inStock ?? 0,
     })
     .returning();
 

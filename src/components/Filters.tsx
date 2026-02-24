@@ -288,31 +288,6 @@ export default function Filters({ categories, brands }: Props) {
                 </ul>
               </Group>
 
-              <Group title="Color" k="color">
-                <ul className="grid grid-cols-2 gap-2">
-                  {COLORS.map((c) => {
-                    const checked = getArrayParam(search, "color").includes(c);
-                    return (
-                      <li key={c} className="flex items-center gap-2">
-                        <input
-                          id={`m-color-${c}`}
-                          type="checkbox"
-                          className="h-4 w-4 accent-dark-900"
-                          checked={checked}
-                          onChange={() => onToggle("color", c)}
-                        />
-                        <label
-                          htmlFor={`m-color-${c}`}
-                          className="text-body capitalize"
-                        >
-                          {c[0].toUpperCase() + c.slice(1)}
-                        </label>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </Group>
-
               <Group title="Precio" k="price">
                 <ul className="space-y-2">
                   {PRICES.map((p) => {

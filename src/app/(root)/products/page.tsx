@@ -3,6 +3,8 @@ import Filters from "@/components/Filters";
 import Sort from "@/components/Sort";
 import { parseFilterParams } from "@/lib/utils/query";
 import { getAllProducts } from "@/lib/actions/product";
+import { getAllCategories } from "@/lib/actions/category";
+import { getAllBrands } from "@/lib/actions/brand";
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
@@ -13,7 +15,11 @@ export default async function ProductsPage({
 }) {
   const sp = await searchParams;
 
-  const parsed = parseFilterParams(sp);
+  const [parsed, categories, brands] = await Promise.all([
+    Promise.resolve(parseFilterParams(sp)),
+    getAllCategories(),
+    getAllBrands(),
+  ]);
   const { products, totalCount } = await getAllProducts(parsed);
 
   const activeBadges: string[] = [];
@@ -67,7 +73,10 @@ export default async function ProductsPage({
       )}
 
       <section className="grid grid-cols-1 gap-6 md:grid-cols-[240px_1fr]">
-        <Filters />
+        <Filters
+          categories={categories.map((c) => ({ slug: c.slug, name: c.name }))}
+          brands={brands.map((b) => ({ slug: b.slug, name: b.name }))}
+        />
         <div>
           {products.length === 0 ? (
             <div className="rounded-lg border border-light-300 p-8 text-center">

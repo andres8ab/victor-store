@@ -38,30 +38,31 @@ export default function Card({
     price === undefined
       ? undefined
       : typeof price === "number"
-      ? `$${price.toFixed(2)}`
-      : price;
+        ? `$${price.toFixed(2)}`
+        : price;
   const content = (
     <article
-      className={`group rounded-xl bg-light-100 ring-1 ring-light-300 transition-colors hover:ring-dark-500 ${className}`}
+      className={`group rounded-xl bg-white ring-1 ring-light-300 transition-colors hover:ring-dark-500 ${className}`}
     >
-      <div className="relative aspect-square overflow-hidden rounded-t-xl bg-light-200">
+      <div className="relative aspect-square overflow-hidden rounded-t-xl bg-white">
         <Image
           src={imageSrc}
           alt={imageAlt}
-          fill
-          sizes="(min-width: 1280px) 360px, (min-width: 1024px) 300px, (min-width: 640px) 45vw, 90vw"
-          className="object-cover transition-transform duration-300 group-hover:scale-105"
+          width={720}
+          height={720}
+          // sizes="(min-width: 1280px) 360px, (min-width: 1024px) 300px, (min-width: 640px) 45vw, 90vw"
+          className="object-contain w-auto h-full transition-transform duration-300 group-hover:scale-105"
         />
+        {displayPrice && (
+          <span className="absolute top-2 right-2 rounded-md bg-white/90 px-2 py-1 text-body-medium font-medium text-dark-900 shadow-sm ring-1 ring-light-300">
+            {displayPrice}
+          </span>
+        )}
       </div>
       <div className="p-4">
-        <div className="mb-1 flex items-baseline justify-between gap-3">
-          <h3 className="text-heading-3 text-dark-900">{title}</h3>
-          {displayPrice && (
-            <span className="text-body-medium text-dark-900">
-              {displayPrice}
-            </span>
-          )}
-        </div>
+        <h3 className="mb-1 line-clamp-2 wrap-break-word text-body text-dark-900">
+          {title}
+        </h3>
         {description && (
           <p className="text-body text-dark-700">{description}</p>
         )}

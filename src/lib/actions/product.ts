@@ -55,12 +55,73 @@ export async function getAllProducts(
 ): Promise<GetAllProductsResult> {
   const conds: SQL[] = [eq(products.isPublished, true)];
 
-  if (filters.search) {
-    const pattern = `%${filters.search}%`;
-    conds.push(
-      or(ilike(products.name, pattern), ilike(products.description, pattern))!,
-    );
+  // E-commerce-style search: token-based (each word must match) + fuzzy for misspellings.
+  // "moto renault" → matches "motor ventilador renault". "hiunday" → matches "hyundai" (pg_trgm).
+  // Enable fuzzy: CREATE EXTENSION IF NOT EXISTS pg_trgm;
+  const searchQuery = filters.search?.trim();
+  const tokens = searchQuery
+    ? searchQuery.split(/\s+/).filter((t) => t.length > 0)
+    : [];
+  const useFuzzySearch = tokens.some((t) => t.length >= 2);
+  let searchOrderBy: SQL | null = null;
+  let searchCondsWithFuzzy: SQL[] = [];
+  let searchCondContainsOnly: SQL | null = null;
+
+  if (tokens.length > 0) {
+    const tokenCondsContainsOnly: SQL[] = [];
+    const tokenCondsWithFuzzy: SQL[] = [];
+
+    for (const token of tokens) {
+      const pattern = `%${token}%`;
+      const patternStart = `${token}%`;
+      const tokenLower = token.toLowerCase();
+      const containsForToken = or(
+        ilike(products.name, pattern),
+        ilike(products.description, pattern),
+      )!;
+      tokenCondsContainsOnly.push(containsForToken);
+      tokenCondsWithFuzzy.push(
+        or(
+          containsForToken,
+          sql`similarity(${products.name}, ${token}) > 0.2`,
+          sql`similarity(${products.description}, ${token}) > 0.2`,
+        )!,
+      );
+    }
+
+    searchCondContainsOnly = and(...tokenCondsContainsOnly)!;
+    if (useFuzzySearch) {
+      searchCondsWithFuzzy = [and(...tokenCondsWithFuzzy)!];
+      const relevanceParts: SQL[] = [];
+      for (const token of tokens) {
+        const pattern = `%${token}%`;
+        const patternStart = `${token}%`;
+        const tokenLower = token.toLowerCase();
+        relevanceParts.push(sql<number>`(CASE
+          WHEN lower(${products.name}) = ${tokenLower} OR lower(trim(${products.description})) = ${tokenLower} THEN 400
+          WHEN ${products.name} ilike ${patternStart} OR ${products.description} ilike ${patternStart} THEN 300
+          WHEN ${products.name} ilike ${pattern} OR ${products.description} ilike ${pattern} THEN 200
+          WHEN similarity(${products.name}, ${token}) > 0.2 OR similarity(${products.description}, ${token}) > 0.2 THEN 100 + 50 * greatest(coalesce(similarity(${products.name}, ${token}), 0), coalesce(similarity(${products.description}, ${token}), 0))
+          ELSE 0
+        END)`);
+      }
+      const relevanceExpr =
+        relevanceParts.length === 1
+          ? relevanceParts[0]
+          : sql<number>`(${sql.join(relevanceParts, sql` + `)})`;
+      searchOrderBy = desc(relevanceExpr);
+    }
+    conds.push(useFuzzySearch ? searchCondsWithFuzzy[0]! : searchCondContainsOnly);
   }
+
+  const baseCondsWithoutSearch =
+    conds.length && tokens.length > 0 && useFuzzySearch ? conds.slice(0, -1) : conds;
+  const baseCondsForFallback =
+    tokens.length > 0 && useFuzzySearch && searchCondContainsOnly
+      ? [...baseCondsWithoutSearch, searchCondContainsOnly]
+      : null;
+  const baseWhereFallback =
+    baseCondsForFallback?.length ? and(...baseCondsForFallback) : undefined;
 
   if (filters?.genderSlugs?.length) {
     conds.push(inArray(genders.slug, filters.genderSlugs));
@@ -157,27 +218,80 @@ export async function getAllProducts(
   const page = Math.max(1, filters?.page || 1);
   const limit = Math.max(1, Math.min(filters?.limit || 20, 60));
   const offset = (page - 1) * limit;
+  const isSearch = tokens.length > 0;
+  const candidateLimit = isSearch ? Math.min(limit * 6, 100) : limit;
+  const orderBy = isSearch && searchOrderBy
+    ? [searchOrderBy, desc(products.createdAt), asc(products.id)]
+    : [primaryOrder, desc(products.createdAt), asc(products.id)];
 
-  const rows = await db
-    .select({
-      id: products.id,
-      name: products.name,
-      createdAt: products.createdAt,
-      subtitle: genders.label,
-      minPrice: priceAgg.minPrice,
-      maxPrice: priceAgg.maxPrice,
-      imageUrl: imageAgg,
-    })
-    .from(products)
-    .leftJoin(imagesJoin, eq(imagesJoin.productId, products.id))
-    .leftJoin(genders, eq(genders.id, products.genderId))
-    .leftJoin(brands, eq(brands.id, products.brandId))
-    .leftJoin(categories, eq(categories.id, products.categoryId))
-    .where(baseWhere)
-    .groupBy(products.id, products.name, products.createdAt, genders.label)
-    .orderBy(primaryOrder, desc(products.createdAt), asc(products.id))
-    .limit(limit)
-    .offset(offset);
+  function runQuery(
+    orderByClause: (SQL | ReturnType<typeof desc> | ReturnType<typeof asc>)[],
+    whereOverride?: SQL,
+  ) {
+    const where = whereOverride ?? baseWhere;
+    return db
+      .select({
+        id: products.id,
+        name: products.name,
+        createdAt: products.createdAt,
+        subtitle: genders.label,
+        minPrice: priceAgg.minPrice,
+        maxPrice: priceAgg.maxPrice,
+        imageUrl: imageAgg,
+      })
+      .from(products)
+      .leftJoin(imagesJoin, eq(imagesJoin.productId, products.id))
+      .leftJoin(genders, eq(genders.id, products.genderId))
+      .leftJoin(brands, eq(brands.id, products.brandId))
+      .leftJoin(categories, eq(categories.id, products.categoryId))
+      .where(where)
+      .groupBy(products.id, products.name, products.createdAt, genders.label)
+      .orderBy(...orderByClause)
+      .limit(candidateLimit)
+      .offset(isSearch ? 0 : offset);
+  }
+
+  function scoreRelevance(row: { name: string }, tokenList: string[]): number {
+    if (tokenList.length === 0) return 0;
+    const n = row.name.toLowerCase();
+    let score = 0;
+    for (const token of tokenList) {
+      const tl = token.toLowerCase();
+      if (n === tl) score += 400;
+      else if (n.startsWith(tl)) score += 300;
+      else if (n.includes(tl)) score += 200;
+      else score += 100;
+    }
+    return score;
+  }
+
+  type Row = { id: string; name: string; createdAt: Date; subtitle: string | null; minPrice: number | null; maxPrice: number | null; imageUrl: string | null };
+  let rows: Row[];
+  let effectiveWhere: SQL | undefined = baseWhere;
+  try {
+    rows = await runQuery(orderBy);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (isSearch && searchOrderBy && baseWhereFallback && (msg.includes("similarity") || msg.includes("function") || msg.includes("does not exist"))) {
+      effectiveWhere = baseWhereFallback;
+      rows = await runQuery([primaryOrder, desc(products.createdAt), asc(products.id)], baseWhereFallback);
+      rows = rows
+        .map((r) => ({ ...r, _score: scoreRelevance(r, tokens) }))
+        .sort((a, b) => (b as Row & { _score: number })._score - (a as Row & { _score: number })._score) as Row[];
+    } else {
+      throw err;
+    }
+  }
+
+  if (tokens.length > 0 && !searchOrderBy && rows.length > 0) {
+    rows = rows
+      .map((r) => ({ ...r, _score: scoreRelevance(r, tokens) }))
+      .sort((a, b) => (b as Row & { _score: number })._score - (a as Row & { _score: number })._score) as Row[];
+  }
+  if (isSearch) {
+    rows = rows.slice(offset, offset + limit);
+  }
+
   const countRows = await db
     .select({
       cnt: count(sql<number>`distinct ${products.id}`),
@@ -186,7 +300,7 @@ export async function getAllProducts(
     .leftJoin(genders, eq(genders.id, products.genderId))
     .leftJoin(brands, eq(brands.id, products.brandId))
     .leftJoin(categories, eq(categories.id, products.categoryId))
-    .where(baseWhere);
+    .where(effectiveWhere);
 
   const productsOut: ProductListItem[] = rows.map((r) => ({
     id: r.id,

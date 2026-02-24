@@ -8,16 +8,9 @@ import {
   toggleArrayParam,
 } from "@/lib/utils/query";
 
-const CATEGORIES = [
-  "componentes-electricos",
-  "herramientas",
-  "cableado",
-  "iluminacion",
-  "interruptores",
-  "enchufes",
-] as const;
-const BRANDS = ["schneider", "siemens", "general-electric", "philips", "osram"] as const;
-const COLORS = ["negro", "blanco", "gris", "plateado"] as const;
+export type FilterCategory = { slug: string; name: string };
+export type FilterBrand = { slug: string; name: string };
+
 const PRICES = [
   { id: "0-50000", label: "$0 - $50.000" },
   { id: "50000-100000", label: "$50.000 - $100.000" },
@@ -27,7 +20,12 @@ const PRICES = [
 
 type GroupKey = "category" | "brand" | "color" | "price";
 
-export default function Filters() {
+type Props = {
+  categories: FilterCategory[];
+  brands: FilterBrand[];
+};
+
+export default function Filters({ categories, brands }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -128,31 +126,30 @@ export default function Filters() {
         </div>
 
         <Group
-          title={`Categoría ${activeCounts.category ? `(${activeCounts.category})` : ""
-            }`}
+          title={`Categoría ${
+            activeCounts.category ? `(${activeCounts.category})` : ""
+          }`}
           k="category"
         >
           <ul className="space-y-2">
-            {CATEGORIES.map((c) => {
-              const checked = getArrayParam(search, "category").includes(c);
-              const label = c
-                .split("-")
-                .map((word) => word[0].toUpperCase() + word.slice(1))
-                .join(" ");
+            {categories.map((c) => {
+              const checked = getArrayParam(search, "category").includes(
+                c.slug,
+              );
               return (
-                <li key={c} className="flex items-center gap-2">
+                <li key={c.slug} className="flex items-center gap-2">
                   <input
-                    id={`category-${c}`}
+                    id={`category-${c.slug}`}
                     type="checkbox"
                     className="h-4 w-4 accent-dark-900"
                     checked={checked}
-                    onChange={() => onToggle("category" as GroupKey, c)}
+                    onChange={() => onToggle("category" as GroupKey, c.slug)}
                   />
                   <label
-                    htmlFor={`category-${c}`}
+                    htmlFor={`category-${c.slug}`}
                     className="text-body text-dark-900"
                   >
-                    {label}
+                    {c.name}
                   </label>
                 </li>
               );
@@ -165,54 +162,22 @@ export default function Filters() {
           k="brand"
         >
           <ul className="space-y-2">
-            {BRANDS.map((b) => {
-              const checked = getArrayParam(search, "brand").includes(b);
-              const label = b
-                .split("-")
-                .map((word) => word[0].toUpperCase() + word.slice(1))
-                .join(" ");
+            {brands.map((b) => {
+              const checked = getArrayParam(search, "brand").includes(b.slug);
               return (
-                <li key={b} className="flex items-center gap-2">
+                <li key={b.slug} className="flex items-center gap-2">
                   <input
-                    id={`brand-${b}`}
+                    id={`brand-${b.slug}`}
                     type="checkbox"
                     className="h-4 w-4 accent-dark-900"
                     checked={checked}
-                    onChange={() => onToggle("brand" as GroupKey, b)}
+                    onChange={() => onToggle("brand" as GroupKey, b.slug)}
                   />
                   <label
-                    htmlFor={`brand-${b}`}
+                    htmlFor={`brand-${b.slug}`}
                     className="text-body text-dark-900"
                   >
-                    {label}
-                  </label>
-                </li>
-              );
-            })}
-          </ul>
-        </Group>
-
-        <Group
-          title={`Color ${activeCounts.color ? `(${activeCounts.color})` : ""}`}
-          k="color"
-        >
-          <ul className="grid grid-cols-2 gap-2">
-            {COLORS.map((c) => {
-              const checked = getArrayParam(search, "color").includes(c);
-              return (
-                <li key={c} className="flex items-center gap-2">
-                  <input
-                    id={`color-${c}`}
-                    type="checkbox"
-                    className="h-4 w-4 accent-dark-900"
-                    checked={checked}
-                    onChange={() => onToggle("color", c)}
-                  />
-                  <label
-                    htmlFor={`color-${c}`}
-                    className="text-body capitalize"
-                  >
-                    {c[0].toUpperCase() + c.slice(1)}
+                    {b.name}
                   </label>
                 </li>
               );
@@ -271,23 +236,24 @@ export default function Filters() {
             <div className="md:hidden">
               <Group title="Categoría" k="category">
                 <ul className="space-y-2">
-                  {CATEGORIES.map((c) => {
-                    const checked = getArrayParam(search, "category").includes(c);
-                    const label = c
-                      .split("-")
-                      .map((word) => word[0].toUpperCase() + word.slice(1))
-                      .join(" ");
+                  {categories.map((c) => {
+                    const checked = getArrayParam(search, "category").includes(
+                      c.slug,
+                    );
                     return (
-                      <li key={c} className="flex items-center gap-2">
+                      <li key={c.slug} className="flex items-center gap-2">
                         <input
-                          id={`m-category-${c}`}
+                          id={`m-category-${c.slug}`}
                           type="checkbox"
                           className="h-4 w-4 accent-dark-900"
                           checked={checked}
-                          onChange={() => onToggle("category", c)}
+                          onChange={() => onToggle("category", c.slug)}
                         />
-                        <label htmlFor={`m-category-${c}`} className="text-body">
-                          {label}
+                        <label
+                          htmlFor={`m-category-${c.slug}`}
+                          className="text-body"
+                        >
+                          {c.name}
                         </label>
                       </li>
                     );
@@ -297,23 +263,24 @@ export default function Filters() {
 
               <Group title="Marca" k="brand">
                 <ul className="space-y-2">
-                  {BRANDS.map((b) => {
-                    const checked = getArrayParam(search, "brand").includes(b);
-                    const label = b
-                      .split("-")
-                      .map((word) => word[0].toUpperCase() + word.slice(1))
-                      .join(" ");
+                  {brands.map((b) => {
+                    const checked = getArrayParam(search, "brand").includes(
+                      b.slug,
+                    );
                     return (
-                      <li key={b} className="flex items-center gap-2">
+                      <li key={b.slug} className="flex items-center gap-2">
                         <input
-                          id={`m-brand-${b}`}
+                          id={`m-brand-${b.slug}`}
                           type="checkbox"
                           className="h-4 w-4 accent-dark-900"
                           checked={checked}
-                          onChange={() => onToggle("brand", b)}
+                          onChange={() => onToggle("brand", b.slug)}
                         />
-                        <label htmlFor={`m-brand-${b}`} className="text-body">
-                          {label}
+                        <label
+                          htmlFor={`m-brand-${b.slug}`}
+                          className="text-body"
+                        >
+                          {b.name}
                         </label>
                       </li>
                     );

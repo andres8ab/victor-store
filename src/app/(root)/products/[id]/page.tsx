@@ -1,10 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import {
-  CollapsibleSection,
-  Card,
-  ProductDetails,
-} from "@/components";
+import { CollapsibleSection, Card, ProductDetails } from "@/components";
 import { Star } from "lucide-react";
 import {
   getProduct,
@@ -40,14 +36,15 @@ async function ReviewsSection({ productId }: { productId: string }) {
 
   return (
     <CollapsibleSection
-      title={`Reviews (${count})`}
+      title={`Reseñas (${count})`}
       rightMeta={
         <span className="flex items-center gap-1 text-dark-900">
           {[1, 2, 3, 4, 5].map((i) => (
             <Star
               key={i}
-              className={`h-4 w-4 ${i <= Math.round(avg) ? "fill-[--color-dark-900]" : ""
-                }`}
+              className={`h-4 w-4 ${
+                i <= Math.round(avg) ? "fill-[--color-dark-900]" : ""
+              }`}
             />
           ))}
         </span>
@@ -65,8 +62,9 @@ async function ReviewsSection({ productId }: { productId: string }) {
                   {[1, 2, 3, 4, 5].map((i) => (
                     <Star
                       key={i}
-                      className={`h-4 w-4 ${i <= r.rating ? "fill-[--color-dark-900]" : ""
-                        }`}
+                      className={`h-4 w-4 ${
+                        i <= r.rating ? "fill-[--color-dark-900]" : ""
+                      }`}
                     />
                   ))}
                 </span>
@@ -95,7 +93,9 @@ async function AlsoLikeSection({ productId }: { productId: string }) {
   if (!recs.length) return null;
   return (
     <section className="mt-16">
-      <h2 className="mb-6 text-heading-3 text-dark-900">También te podría interesar</h2>
+      <h2 className="mb-6 text-heading-3 text-dark-900">
+        También te podría interesar
+      </h2>
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {recs.map((p) => (
           <Card
@@ -152,10 +152,7 @@ export default async function ProductDetailPage({
         / <span className="text-dark-900">{product.name}</span>
       </nav>
 
-      <ProductDetails
-        product={product}
-        images={images}
-      />
+      <ProductDetails product={product} images={images} />
 
       <Suspense
         fallback={

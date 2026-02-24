@@ -54,7 +54,7 @@ export default function Navbar() {
         <div className="flex items-center gap-4">
           <button
             onClick={() => setIsSearchOpen(true)}
-            className="text-body text-dark-900 transition-colors hover:text-dark-700 hidden md:block" // Hidden on mobile as it's in the menu
+            className="text-body text-dark-900 transition-colors cursor-pointer hover:text-dark-700 hidden md:block" // Hidden on mobile as it's in the menu
           >
             Buscar
           </button>
@@ -80,8 +80,9 @@ export default function Navbar() {
 
       <div
         id="mobile-menu"
-        className={`border-t border-light-300 md:hidden ${open ? "block" : "hidden"
-          }`}
+        className={`border-t border-light-300 md:hidden ${
+          open ? "block" : "hidden"
+        }`}
       >
         <ul className="space-y-2 px-4 py-3">
           {NAV_LINKS.map((l) => (
@@ -105,7 +106,6 @@ export default function Navbar() {
             >
               Buscar
             </button>
-
           </li>
         </ul>
       </div>

@@ -13,6 +13,7 @@ type Product = {
   categoryId: string | null;
   brandId: string | null;
   inStock?: number | null;
+  price?: string | null;
 };
 
 type Category = {
@@ -46,6 +47,7 @@ export default function ProductForm({
 
     const formData = new FormData(e.currentTarget);
     const inStockRaw = formData.get("inStock") as string;
+    const priceRaw = formData.get("price") as string;
     const data = {
       id: product.id,
       name: formData.get("name") as string,
@@ -54,6 +56,7 @@ export default function ProductForm({
       brandId: (formData.get("brandId") as string) || null,
       isPublished: product.isPublished,
       inStock: inStockRaw !== "" ? parseInt(inStockRaw, 10) : undefined,
+      price: priceRaw !== "" ? priceRaw : undefined,
     };
 
     try {
@@ -157,22 +160,41 @@ export default function ProductForm({
         </select>
       </div>
 
-      <div>
-        <label
-          htmlFor="inStock"
-          className="block text-body-medium text-dark-900 mb-2"
-        >
-          Inventario
-        </label>
-        <input
-          type="number"
-          id="inStock"
-          name="inStock"
-          defaultValue={product.inStock ?? ""}
-          min={0}
-          step={1}
-          className="w-full rounded-lg border border-light-300 px-4 py-2 text-body text-dark-900 focus:outline-none focus:ring-2 focus:ring-green"
-        />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label
+            htmlFor="price"
+            className="block text-body-medium text-dark-900 mb-2"
+          >
+            Precio
+          </label>
+          <input
+            type="number"
+            id="price"
+            name="price"
+            defaultValue={product.price ?? ""}
+            min={0}
+            step={0.01}
+            className="w-full rounded-lg border border-light-300 px-4 py-2 text-body text-dark-900 focus:outline-none focus:ring-2 focus:ring-green"
+          />
+        </div>
+        <div>
+          <label
+            htmlFor="inStock"
+            className="block text-body-medium text-dark-900 mb-2"
+          >
+            Inventario
+          </label>
+          <input
+            type="number"
+            id="inStock"
+            name="inStock"
+            defaultValue={product.inStock ?? ""}
+            min={0}
+            step={1}
+            className="w-full rounded-lg border border-light-300 px-4 py-2 text-body text-dark-900 focus:outline-none focus:ring-2 focus:ring-green"
+          />
+        </div>
       </div>
 
       <button

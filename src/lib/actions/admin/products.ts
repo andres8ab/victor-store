@@ -15,9 +15,10 @@ const createProductSchema = z.object({
   isPublished: z.boolean().optional(),
   images: z.array(z.string().url()).optional(),
   inStock: z.number().int().nonnegative().optional(),
+  price: z.union([z.string(), z.number()]).optional(),
 });
 
-const updateProductSchema = createProductSchema.extend({
+const updateProductSchema = createProductSchema.omit({ images: true }).extend({
   id: z.string().uuid(),
 });
 
@@ -30,6 +31,10 @@ export async function createProduct(data: z.infer<typeof createProductSchema>) {
   await requireAdmin();
   const validated = createProductSchema.parse(data);
 
+  const priceStr =
+    validated.price !== undefined && validated.price !== ""
+      ? String(validated.price)
+      : "0";
   const [product] = await db
     .insert(products)
     .values({
@@ -39,6 +44,7 @@ export async function createProduct(data: z.infer<typeof createProductSchema>) {
       brandId: validated.brandId ?? null,
       isPublished: validated.isPublished ?? false,
       inStock: validated.inStock ?? 0,
+      price: priceStr,
     })
     .returning();
 
@@ -61,6 +67,10 @@ export async function updateProduct(data: z.infer<typeof updateProductSchema>) {
   await requireAdmin();
   const validated = updateProductSchema.parse(data);
 
+  const priceStr =
+    validated.price !== undefined && validated.price !== ""
+      ? String(validated.price)
+      : "0";
   const [product] = await db
     .update(products)
     .set({
@@ -69,6 +79,8 @@ export async function updateProduct(data: z.infer<typeof updateProductSchema>) {
       categoryId: validated.categoryId ?? null,
       brandId: validated.brandId ?? null,
       isPublished: validated.isPublished,
+      inStock: validated.inStock ?? 0,
+      price: priceStr,
       updatedAt: new Date(),
     })
     .where(eq(products.id, validated.id))
@@ -149,6 +161,8 @@ export async function getProductWithVariantsForAdmin(productId: string) {
       isPublished: products.isPublished,
       categoryId: products.categoryId,
       brandId: products.brandId,
+      price: products.price,
+      inStock: products.inStock,
       createdAt: products.createdAt,
       updatedAt: products.updatedAt,
       categoryName: categories.name,

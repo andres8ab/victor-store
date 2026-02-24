@@ -42,6 +42,7 @@ export default function CreateProductModal({
   const [description, setDescription] = useState("");
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [brandId, setBrandId] = useState<string | null>(null);
+  const [price, setPrice] = useState<number | undefined>(undefined);
   const [inStock, setInStock] = useState<number | undefined>(undefined);
   const [isPublished, setIsPublished] = useState(false);
   const [images, setImages] = useState<string[]>([]);
@@ -60,6 +61,7 @@ export default function CreateProductModal({
         images,
         isPublished,
         inStock,
+        price,
       });
 
       if (result.success) {
@@ -74,6 +76,7 @@ export default function CreateProductModal({
         setDescription("");
         setCategoryId(null);
         setBrandId(null);
+        setPrice(undefined);
         setImages([]);
         // Redirect to the product edit page after a short delay
         setTimeout(() => {
@@ -190,6 +193,27 @@ export default function CreateProductModal({
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="flex flex-col gap-2">
                 <label
+                  htmlFor="price"
+                  className="text-body-medium text-dark-900"
+                >
+                  Precio
+                </label>
+                <InputNumber
+                  id="price"
+                  value={price ?? null}
+                  onValueChange={(e) => setPrice(e.value ?? undefined)}
+                  min={0}
+                  mode="decimal"
+                  minFractionDigits={0}
+                  maxFractionDigits={2}
+                  showButtons
+                  className="w-full"
+                  placeholder="Ej: 99.00"
+                />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label
                   htmlFor="inStock"
                   className="text-body-medium text-dark-900"
                 >
@@ -205,7 +229,9 @@ export default function CreateProductModal({
                   placeholder="Ej: 10"
                 />
               </div>
+            </div>
 
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="flex flex-col gap-2">
                 <label
                   htmlFor="isPublished"

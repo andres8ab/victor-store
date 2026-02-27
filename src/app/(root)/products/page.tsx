@@ -86,26 +86,17 @@ export default async function ProductsPage({
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 pb-6">
-              {products.map((p) => {
-                const price =
-                  p.minPrice !== null &&
-                  p.maxPrice !== null &&
-                  p.minPrice !== p.maxPrice
-                    ? `$${p.minPrice.toFixed(2)} - $${p.maxPrice.toFixed(2)}`
-                    : p.minPrice !== null
-                      ? p.minPrice
-                      : undefined;
-                return (
-                  <Card
-                    key={p.id}
-                    title={p.name}
-                    subtitle={p.subtitle ?? undefined}
-                    imageSrc={p.imageUrl ?? "/parts/noImage.png"}
-                    price={price}
-                    href={`/products/${p.id}`}
-                  />
-                );
-              })}
+              {products.map((p) => (
+                <Card
+                  key={p.id}
+                  title={p.name}
+                  subtitle={p.subtitle ?? undefined}
+                  imageSrc={p.imageUrl ?? "/parts/noImage.png"}
+                  price={p.price ?? undefined}
+                  salePrice={p.salePrice ?? undefined}
+                  href={`/products/${p.id}`}
+                />
+              ))}
             </div>
           )}
         </div>

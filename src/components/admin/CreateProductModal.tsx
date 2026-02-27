@@ -43,6 +43,7 @@ export default function CreateProductModal({
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [brandId, setBrandId] = useState<string | null>(null);
   const [price, setPrice] = useState<number | undefined>(undefined);
+  const [salePrice, setSalePrice] = useState<number | undefined>(undefined);
   const [inStock, setInStock] = useState<number | undefined>(undefined);
   const [isPublished, setIsPublished] = useState(false);
   const [images, setImages] = useState<string[]>([]);
@@ -62,6 +63,7 @@ export default function CreateProductModal({
         isPublished,
         inStock,
         price,
+        salePrice,
       });
 
       if (result.success) {
@@ -77,6 +79,7 @@ export default function CreateProductModal({
         setCategoryId(null);
         setBrandId(null);
         setPrice(undefined);
+        setSalePrice(undefined);
         setImages([]);
         // Redirect to the product edit page after a short delay
         setTimeout(() => {
@@ -190,7 +193,7 @@ export default function CreateProductModal({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div className="flex flex-col gap-2">
                 <label
                   htmlFor="price"
@@ -209,6 +212,26 @@ export default function CreateProductModal({
                   showButtons
                   className="w-full"
                   placeholder="Ej: 99.00"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <label
+                  htmlFor="salePrice"
+                  className="text-body-medium text-dark-900"
+                >
+                  Precio oferta (opcional)
+                </label>
+                <InputNumber
+                  id="salePrice"
+                  value={salePrice ?? null}
+                  onValueChange={(e) => setSalePrice(e.value ?? undefined)}
+                  min={0}
+                  mode="decimal"
+                  minFractionDigits={0}
+                  maxFractionDigits={2}
+                  showButtons
+                  className="w-full"
+                  placeholder="Ej: 79.00"
                 />
               </div>
 

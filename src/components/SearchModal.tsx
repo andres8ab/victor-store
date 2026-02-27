@@ -118,14 +118,27 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
           ) : query.trim() && results.length > 0 ? (
             <div className="divide-y divide-light-300">
               {results.map((product) => {
-                const price =
-                  product.minPrice !== null &&
-                  product.maxPrice !== null &&
-                  product.minPrice !== product.maxPrice
-                    ? `$${product.minPrice.toFixed(2)} - $${product.maxPrice.toFixed(2)}`
-                    : product.minPrice !== null
-                      ? `$${product.minPrice.toFixed(2)}`
-                      : undefined;
+                const formatPrice = (value: number | null | undefined) => {
+                  if (value === null || value === undefined) return undefined;
+                  return `$${value.toLocaleString("es-CO", {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                  })}`;
+                };
+
+                const basePrice = product.price as number | null | undefined;
+                const salePrice = product.salePrice as
+                  | number
+                  | null
+                  | undefined;
+
+                const hasValidSale =
+                  basePrice !== null &&
+                  basePrice !== undefined &&
+                  salePrice !== null &&
+                  salePrice !== undefined &&
+                  salePrice < basePrice;
+
                 return (
                   <Link
                     key={product.id}
@@ -154,9 +167,20 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
                         </p>
                       )}
                     </div>
-                    {price && (
+                    {(basePrice !== null || salePrice !== null) && (
                       <div className="text-body-medium text-dark-900">
-                        {price}
+                        {hasValidSale ? (
+                          <>
+                            <span className="text-[--color-green]">
+                              {formatPrice(salePrice)}
+                            </span>
+                            <span className="ml-2 text-caption text-dark-700 line-through">
+                              {formatPrice(basePrice)}
+                            </span>
+                          </>
+                        ) : (
+                          formatPrice(basePrice ?? salePrice)
+                        )}
                       </div>
                     )}
                   </Link>

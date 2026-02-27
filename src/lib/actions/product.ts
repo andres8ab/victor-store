@@ -39,8 +39,8 @@ type ProductListItem = {
   id: string;
   name: string;
   imageUrl: string | null;
-  minPrice: number | null;
-  maxPrice: number | null;
+  price: number | null;
+  salePrice: number | null;
   createdAt: Date;
   subtitle?: string | null;
 };
@@ -235,9 +235,9 @@ export async function getAllProducts(
         name: products.name,
         createdAt: products.createdAt,
         subtitle: genders.label,
-        minPrice: priceAgg.minPrice,
-        maxPrice: priceAgg.maxPrice,
         imageUrl: imageAgg,
+        price: sql<number | null>`${products.price}::numeric`,
+        salePrice: sql<number | null>`${products.salePrice}::numeric`,
       })
       .from(products)
       .leftJoin(imagesJoin, eq(imagesJoin.productId, products.id))
@@ -245,7 +245,14 @@ export async function getAllProducts(
       .leftJoin(brands, eq(brands.id, products.brandId))
       .leftJoin(categories, eq(categories.id, products.categoryId))
       .where(where)
-      .groupBy(products.id, products.name, products.createdAt, genders.label)
+      .groupBy(
+        products.id,
+        products.name,
+        products.createdAt,
+        genders.label,
+        products.price,
+        products.salePrice,
+      )
       .orderBy(...orderByClause)
       .limit(candidateLimit)
       .offset(isSearch ? 0 : offset);
@@ -265,7 +272,15 @@ export async function getAllProducts(
     return score;
   }
 
-  type Row = { id: string; name: string; createdAt: Date; subtitle: string | null; minPrice: number | null; maxPrice: number | null; imageUrl: string | null };
+  type Row = {
+    id: string;
+    name: string;
+    createdAt: Date;
+    subtitle: string | null;
+    imageUrl: string | null;
+    price: number | null;
+    salePrice: number | null;
+  };
   let rows: Row[];
   let effectiveWhere: SQL | undefined = baseWhere;
   try {
@@ -306,8 +321,8 @@ export async function getAllProducts(
     id: r.id,
     name: r.name,
     imageUrl: r.imageUrl,
-    minPrice: r.minPrice === null ? null : Number(r.minPrice),
-    maxPrice: r.maxPrice === null ? null : Number(r.maxPrice),
+    price: r.price === null ? null : Number(r.price),
+    salePrice: r.salePrice === null ? null : Number(r.salePrice),
     createdAt: r.createdAt,
     subtitle: r.subtitle ? r.subtitle : null,
   }));
@@ -582,11 +597,6 @@ export async function getMostPurchasedProducts(
     .from(productImages)
     .as("pi");
 
-  const priceAgg = {
-    minPrice: sql<number | null>`min(COALESCE(${products.salePrice}, ${products.price})::numeric)`,
-    maxPrice: sql<number | null>`max(COALESCE(${products.salePrice}, ${products.price})::numeric)`,
-  };
-
   const imageAgg = sql<
     string | null
   >`max(case when ${imagesJoin.rn} = 1 then ${imagesJoin.url} else null end)`;
@@ -597,8 +607,8 @@ export async function getMostPurchasedProducts(
       name: products.name,
       createdAt: products.createdAt,
       subtitle: genders.label,
-      minPrice: priceAgg.minPrice,
-      maxPrice: priceAgg.maxPrice,
+      price: sql<number | null>`${products.price}::numeric`,
+      salePrice: sql<number | null>`${products.salePrice}::numeric`,
       imageUrl: imageAgg,
       purchaseCount: sql<number>`coalesce(max(${purchaseStats.count}), 0)`,
     })
@@ -618,8 +628,8 @@ export async function getMostPurchasedProducts(
     id: r.id,
     name: r.name,
     imageUrl: r.imageUrl,
-    minPrice: r.minPrice === null ? null : Number(r.minPrice),
-    maxPrice: r.maxPrice === null ? null : Number(r.maxPrice),
+    price: r.price === null ? null : Number(r.price),
+    salePrice: r.salePrice === null ? null : Number(r.salePrice),
     createdAt: r.createdAt,
     subtitle: r.subtitle ? r.subtitle : null,
   }));
@@ -640,11 +650,6 @@ export async function getFeaturedProducts(
     .from(productImages)
     .as("pi");
 
-  const priceAgg = {
-    minPrice: sql<number | null>`min(COALESCE(${products.salePrice}, ${products.price})::numeric)`,
-    maxPrice: sql<number | null>`max(COALESCE(${products.salePrice}, ${products.price})::numeric)`,
-  };
-
   const imageAgg = sql<
     string | null
   >`max(case when ${imagesJoin.rn} = 1 then ${imagesJoin.url} else null end)`;
@@ -655,8 +660,8 @@ export async function getFeaturedProducts(
       name: products.name,
       createdAt: products.createdAt,
       subtitle: genders.label,
-      minPrice: priceAgg.minPrice,
-      maxPrice: priceAgg.maxPrice,
+      price: sql<number | null>`${products.price}::numeric`,
+      salePrice: sql<number | null>`${products.salePrice}::numeric`,
       imageUrl: imageAgg,
       avgRating: avg(reviews.rating),
     })
@@ -673,8 +678,8 @@ export async function getFeaturedProducts(
     id: r.id,
     name: r.name,
     imageUrl: r.imageUrl,
-    minPrice: r.minPrice === null ? null : Number(r.minPrice),
-    maxPrice: r.maxPrice === null ? null : Number(r.maxPrice),
+    price: r.price === null ? null : Number(r.price),
+    salePrice: r.salePrice === null ? null : Number(r.salePrice),
     createdAt: r.createdAt,
     subtitle: r.subtitle ? r.subtitle : null,
   }));

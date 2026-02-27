@@ -11,6 +11,7 @@ export interface CardProps {
   imageSrc: string;
   imageAlt?: string;
   price?: string | number;
+   salePrice?: string | number;
   href?: string;
   badge?: { label: string; tone?: BadgeTone };
   className?: string;
@@ -30,16 +31,44 @@ export default function Card({
   imageSrc,
   imageAlt = title,
   price,
+  salePrice,
   href,
   badge,
   className = "",
 }: CardProps) {
-  const displayPrice =
-    price === undefined
-      ? undefined
-      : typeof price === "number"
-        ? `$${price.toFixed(2)}`
-        : price;
+  const formatPrice = (value: string | number | undefined) => {
+    if (value === undefined) return undefined;
+    const num =
+      typeof value === "number" ? value : Number.parseFloat(value ?? "");
+    if (Number.isNaN(num)) return undefined;
+    return `$${num.toLocaleString("es-CO", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    })}`;
+  };
+
+  const basePriceFormatted = formatPrice(price);
+  const salePriceFormatted = formatPrice(salePrice);
+
+  const hasValidSale =
+    salePriceFormatted !== undefined &&
+    basePriceFormatted !== undefined &&
+    (() => {
+      const baseNum =
+        typeof price === "number" ? price : Number.parseFloat(String(price));
+      const saleNum =
+        typeof salePrice === "number"
+          ? salePrice
+          : Number.parseFloat(String(salePrice));
+      return !Number.isNaN(baseNum) &&
+        !Number.isNaN(saleNum) &&
+        saleNum < baseNum;
+    })();
+
+  const displayPrice = hasValidSale
+    ? salePriceFormatted
+    : basePriceFormatted ?? salePriceFormatted;
+
   const content = (
     <article
       className={`group rounded-xl bg-white ring-1 ring-light-300 transition-colors hover:ring-dark-500 ${className}`}
@@ -55,11 +84,27 @@ export default function Card({
         />
         {displayPrice && (
           <span className="absolute top-2 right-2 rounded-md bg-white/90 px-2 py-1 text-body-medium font-medium text-dark-900 shadow-sm ring-1 ring-light-300">
-            {displayPrice}
+            {hasValidSale ? (
+              <>
+                <span className="text-[--color-green]">{displayPrice}</span>
+                <span className="ml-2 text-caption text-dark-700 line-through">
+                  {basePriceFormatted}
+                </span>
+              </>
+            ) : (
+              displayPrice
+            )}
           </span>
         )}
       </div>
       <div className="p-4">
+        {badge && (
+          <span
+            className={`mb-2 inline-block rounded-full bg-light-200 px-2 py-0.5 text-caption ${toneToBg[badge.tone ?? "green"]}`}
+          >
+            {badge.label}
+          </span>
+        )}
         <h3 className="mb-1 line-clamp-2 wrap-break-word text-body text-dark-900">
           {title}
         </h3>

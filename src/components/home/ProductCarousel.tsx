@@ -7,8 +7,8 @@ type Product = {
   id: string;
   name: string;
   imageUrl: string | null;
-  minPrice: number | null;
-  maxPrice: number | null;
+  price: number | null;
+  salePrice: number | null;
   subtitle?: string | null;
 };
 
@@ -43,22 +43,14 @@ export default function ProductCarousel({
   })();
 
   const productTemplate = (product: Product) => {
-    const price =
-      product.minPrice !== null &&
-      product.maxPrice !== null &&
-      product.minPrice !== product.maxPrice
-        ? `$${product.minPrice.toFixed(2)} - $${product.maxPrice.toFixed(2)}`
-        : product.minPrice !== null
-          ? product.minPrice
-          : undefined;
-
     return (
       <div className="p-2">
         <Card
           title={product.name}
           subtitle={product.subtitle ?? undefined}
           imageSrc={product.imageUrl ?? "/parts/noImage.png"}
-          price={price}
+          price={product.price ?? undefined}
+          salePrice={product.salePrice ?? undefined}
           href={`/products/${product.id}`}
         />
       </div>
@@ -77,8 +69,8 @@ export default function ProductCarousel({
         responsiveOptions={responsiveOptions}
         itemTemplate={productTemplate}
         circular
-        autoplayInterval={3000}
         showIndicators={false}
+        autoplayInterval={3000}
         pt={{
           itemsContent: { className: "gap-4" },
         }}

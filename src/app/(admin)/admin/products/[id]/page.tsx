@@ -1,6 +1,9 @@
 import { redirect } from "next/navigation";
 import { isAdmin } from "@/lib/auth/admin";
-import { getProductWithVariantsForAdmin, toggleProductPublished } from "@/lib/actions/admin/products";
+import {
+  getProductWithVariantsForAdmin,
+  toggleProductPublished,
+} from "@/lib/actions/admin/products";
 import { getAllCategoriesForAdmin } from "@/lib/actions/admin/categories";
 import { getAllBrandsForAdmin } from "@/lib/actions/admin/brands";
 import Link from "next/link";
@@ -53,10 +56,11 @@ export default async function AdminProductDetailPage({
         <h1 className="text-heading-2 text-dark-900 mb-2">{product.name}</h1>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
           <span
-            className={`inline-block rounded-full px-3 py-1 text-footnote ${product.isPublished
-              ? "bg-green/20 text-green"
-              : "bg-dark-500/20 text-dark-500"
-              }`}
+            className={`inline-block rounded-full px-3 py-1 text-footnote ${
+              product.isPublished
+                ? "bg-green/20 text-green"
+                : "bg-dark-500/20 text-dark-500"
+            }`}
           >
             {product.isPublished ? "Publicado" : "Borrador"}
           </span>
@@ -77,7 +81,7 @@ export default async function AdminProductDetailPage({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-8">
         <div>
           <h2 className="text-heading-3 text-dark-900 mb-4">
             Información del Producto

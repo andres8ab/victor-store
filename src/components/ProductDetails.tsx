@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { Truck, ShieldCheck, Heart } from "lucide-react";
 import ProductGallery from "./ProductGallery";
 import { AddToCartButton } from "./AddToCartButton";
@@ -25,13 +25,30 @@ export default function ProductDetails({
     images,
 }: ProductDetailsProps) {
     // Derived price logic from single product
-    const price = product.price;
-    const salePrice = product.salePrice;
-    const displayPrice = salePrice ? parseFloat(salePrice) : (price ? parseFloat(price) : null);
-    const compareAt = salePrice && price ? parseFloat(price) : null;
-    const discount = compareAt && displayPrice && compareAt > displayPrice
-        ? Math.round(((compareAt - displayPrice) / compareAt) * 100)
-        : null;
+    const basePrice =
+        product.price !== null && product.price !== undefined
+            ? Number(product.price)
+            : null;
+    const rawSale =
+        product.salePrice !== null && product.salePrice !== undefined
+            ? Number(product.salePrice)
+            : null;
+
+    let displayPrice: number | null = basePrice;
+    let compareAt: number | null = null;
+    let discount: number | null = null;
+
+    if (
+        rawSale !== null &&
+        !Number.isNaN(rawSale) &&
+        basePrice !== null &&
+        !Number.isNaN(basePrice) &&
+        rawSale < basePrice
+    ) {
+        displayPrice = rawSale;
+        compareAt = basePrice;
+        discount = Math.round(((basePrice - rawSale) / basePrice) * 100);
+    }
 
     // Prepare images for gallery
     const galleryItems = useMemo(() => {
@@ -70,16 +87,14 @@ export default function ProductDetails({
                     <p className="text-lead text-dark-900">
                         {formatPrice(displayPrice)}
                     </p>
-                    {compareAt !== null && (
+                    {compareAt !== null && discount !== null && (
                         <>
                             <span className="text-body text-dark-700 line-through">
                                 {formatPrice(compareAt)}
                             </span>
-                            {discount !== null && (
-                                <span className="rounded-full border border-light-300 px-2 py-1 text-caption text-[--color-green]">
-                                    {discount}% Dto
-                                </span>
-                            )}
+                            <span className="rounded-full border border-light-300 px-2 py-1 text-caption text-[--color-green]">
+                                {discount}% Dto
+                            </span>
                         </>
                     )}
                 </div>

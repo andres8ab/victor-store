@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { Toast } from "primereact/toast";
+import { useRef, useState } from "react";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -11,22 +12,53 @@ export default function ContactPage() {
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">(
-    "idle",
-  );
+  const [submitStatus, setSubmitStatus] = useState<
+    "idle" | "success" | "error"
+  >("idle");
+  const toast = useRef<Toast>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setSubmitStatus("idle");
 
-    // Simulate form submission
-    // In a real app, you would send this to an API endpoint
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        toast.current?.show({
+          severity: "error",
+          summary: "Error",
+          detail: "No se pudo enviar el mensaje. Por favor, intenta de nuevo.",
+          life: 5000,
+        });
+        throw new Error("Failed to send message");
+      }
+
+      toast.current?.show({
+        severity: "success",
+        summary: "Success",
+        detail:
+          "Mensaje enviado exitosamente. Nos pondremos en contacto contigo pronto.",
+        life: 5000,
+      });
+
       setSubmitStatus("success");
-      setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        subject: "",
+        message: "",
+      });
     } catch (error) {
+      console.error("Error sending contact form", error);
       setSubmitStatus("error");
     } finally {
       setIsSubmitting(false);
@@ -34,7 +66,9 @@ export default function ContactPage() {
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -44,6 +78,7 @@ export default function ContactPage() {
 
   return (
     <main className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+      <Toast ref={toast} />
       <header className="py-6">
         <h1 className="text-heading-2 text-dark-900">Contacto</h1>
         <p className="mt-2 text-body text-dark-700">
@@ -60,27 +95,27 @@ export default function ContactPage() {
             <div>
               <h3 className="text-body-medium text-dark-900">Dirección</h3>
               <p className="text-body text-dark-700">
-                Tu dirección aquí
+                Carrera 38 #43-07
                 <br />
-                Ciudad, Estado, Código Postal
+                Barranquilla, Atlántico, 08001 Colombia
               </p>
             </div>
             <div>
               <h3 className="text-body-medium text-dark-900">Teléfono</h3>
-              <p className="text-body text-dark-700">+1 (555) 123-4567</p>
+              <p className="text-body text-dark-700">+57 300 372 5519</p>
             </div>
             <div>
               <h3 className="text-body-medium text-dark-900">Email</h3>
-              <p className="text-body text-dark-700">contacto@todo-electrico-victor.com</p>
+              <p className="text-body text-dark-700">
+                todoelectricovictor@gmail.com
+              </p>
             </div>
             <div>
               <h3 className="text-body-medium text-dark-900">Horario</h3>
               <p className="text-body text-dark-700">
-                Lunes - Viernes: 9:00 AM - 6:00 PM
+                Lunes a Sábado: 8:00 AM - 6:00 PM
                 <br />
-                Sábado: 10:00 AM - 4:00 PM
-                <br />
-                Domingo: Cerrado
+                Domingo: 9:00 AM - 1:00 PM
               </p>
             </div>
           </div>
@@ -187,8 +222,8 @@ export default function ContactPage() {
 
             {submitStatus === "success" && (
               <div className="rounded-lg bg-green-50 p-4 text-body text-green-800">
-                ¡Mensaje enviado exitosamente! Nos pondremos en contacto
-                contigo pronto.
+                ¡Mensaje enviado exitosamente! Nos pondremos en contacto contigo
+                pronto.
               </div>
             )}
 

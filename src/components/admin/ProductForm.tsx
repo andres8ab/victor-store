@@ -14,6 +14,7 @@ type Product = {
   brandId: string | null;
   inStock?: number | null;
   price?: string | null;
+  salePrice?: string | null;
 };
 
 type Category = {
@@ -48,6 +49,7 @@ export default function ProductForm({
     const formData = new FormData(e.currentTarget);
     const inStockRaw = formData.get("inStock") as string;
     const priceRaw = formData.get("price") as string;
+    const salePriceRaw = formData.get("salePrice") as string;
     const data = {
       id: product.id,
       name: formData.get("name") as string,
@@ -57,6 +59,7 @@ export default function ProductForm({
       isPublished: product.isPublished,
       inStock: inStockRaw !== "" ? parseInt(inStockRaw, 10) : undefined,
       price: priceRaw !== "" ? priceRaw : undefined,
+      salePrice: salePriceRaw !== "" ? salePriceRaw : undefined,
     };
 
     try {
@@ -76,6 +79,7 @@ export default function ProductForm({
       });
     } finally {
       setIsSubmitting(false);
+      router.push(`/admin/products`);
     }
   }
 
@@ -160,7 +164,7 @@ export default function ProductForm({
         </select>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div>
           <label
             htmlFor="price"
@@ -173,6 +177,23 @@ export default function ProductForm({
             id="price"
             name="price"
             defaultValue={product.price ?? ""}
+            min={0}
+            step={0.01}
+            className="w-full rounded-lg border border-light-300 px-4 py-2 text-body text-dark-900 focus:outline-none focus:ring-2 focus:ring-green"
+          />
+        </div>
+        <div>
+          <label
+            htmlFor="salePrice"
+            className="block text-body-medium text-dark-900 mb-2"
+          >
+            Precio oferta (opcional)
+          </label>
+          <input
+            type="number"
+            id="salePrice"
+            name="salePrice"
+            defaultValue={product.salePrice ?? ""}
             min={0}
             step={0.01}
             className="w-full rounded-lg border border-light-300 px-4 py-2 text-body text-dark-900 focus:outline-none focus:ring-2 focus:ring-green"
@@ -200,7 +221,7 @@ export default function ProductForm({
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full rounded-lg bg-green px-4 py-2 text-body-medium text-light-100 hover:bg-opacity-90 transition-colors disabled:opacity-50"
+        className="w-full rounded-lg bg-green cursor-pointer px-4 py-2 text-body-medium text-light-100 hover:bg-opacity-90 transition-colors disabled:opacity-50"
       >
         {isSubmitting ? "Guardando..." : "Guardar Cambios"}
       </button>

@@ -8,7 +8,7 @@ export default async function Footer() {
 
   // Organize columns: distribute categories across columns, with navigation links
   const maxCategoriesPerColumn = 6;
-  const categoryColumns: typeof categories[] = [];
+  const categoryColumns: (typeof categories)[] = [];
 
   for (let i = 0; i < categories.length; i += maxCategoriesPerColumn) {
     categoryColumns.push(categories.slice(i, i + maxCategoriesPerColumn));
@@ -64,25 +64,25 @@ export default async function Footer() {
                 <ul className="space-y-3">
                   {col.isCategory && col.links.length > 0
                     ? col.links.map((category) => (
-                      <li key={category.id}>
-                        <Link
-                          href={`/products?category[]=${category.slug}`}
-                          className="text-body text-light-400 hover:text-light-300 transition-colors"
-                        >
-                          {category.name}
-                        </Link>
-                      </li>
-                    ))
+                        <li key={category.id}>
+                          <Link
+                            href={`/products?category[]=${category.slug}`}
+                            className="text-body text-light-400 hover:text-light-300 transition-colors"
+                          >
+                            {category.name}
+                          </Link>
+                        </li>
+                      ))
                     : col.fallbackLinks?.map((link) => (
-                      <li key={link.href}>
-                        <Link
-                          href={link.href}
-                          className="text-body text-light-400 hover:text-light-300 transition-colors"
-                        >
-                          {link.label}
-                        </Link>
-                      </li>
-                    ))}
+                        <li key={link.href}>
+                          <Link
+                            href={link.href}
+                            className="text-body text-light-400 hover:text-light-300 transition-colors"
+                          >
+                            {link.label}
+                          </Link>
+                        </li>
+                      ))}
                 </ul>
               </div>
             ))}
@@ -90,9 +90,16 @@ export default async function Footer() {
 
           <div className="flex gap-4 md:col-span-2 md:justify-end">
             {[
-              { src: "/x.svg", alt: "X", href: "#" },
-              { src: "/facebook.svg", alt: "Facebook", href: "https://www.facebook.com/people/Todo-Electrico-Victor/100063567141788/" },
-              { src: "/instagram.svg", alt: "Instagram", href: "https://www.instagram.com/todoelectrico_victor/" },
+              {
+                src: "/facebook.svg",
+                alt: "Facebook",
+                href: "https://www.facebook.com/people/Todo-Electrico-Victor/100063567141788/",
+              },
+              {
+                src: "/instagram.svg",
+                alt: "Instagram",
+                href: "https://www.instagram.com/todoelectrico_victor/",
+              },
             ].map((s) => (
               <Link
                 key={s.alt}
@@ -113,7 +120,8 @@ export default async function Footer() {
             <Image src="/globe.svg" alt="" width={16} height={16} />
             <span>Colombia</span>
             <span>
-              © {currentYear} Todo Electrico Victor Autopartes SAS. All Rights Reserved
+              © {currentYear} Todo Electrico Victor Autopartes SAS. All Rights
+              Reserved
             </span>
           </div>
           <ul className="flex items-center gap-6 text-caption">

@@ -5,6 +5,7 @@ import {
   timestamp,
   numeric,
   integer,
+  text,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { z } from "zod";
@@ -32,6 +33,10 @@ export const orders = pgTable("orders", {
   billingAddressId: uuid("billing_address_id").references(() => addresses.id, {
     onDelete: "set null",
   }),
+  customerName: text("customer_name"),
+  customerEmail: text("customer_email"),
+  customerPhone: text("customer_phone"),
+  customerNotes: text("customer_notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -85,6 +90,10 @@ export const insertOrderSchema = z.object({
   totalAmount: z.number(),
   shippingAddressId: z.string().uuid().optional().nullable(),
   billingAddressId: z.string().uuid().optional().nullable(),
+  customerName: z.string().optional().nullable(),
+  customerEmail: z.string().optional().nullable(),
+  customerPhone: z.string().optional().nullable(),
+  customerNotes: z.string().optional().nullable(),
   createdAt: z.date().optional(),
 });
 export const selectOrderSchema = insertOrderSchema.extend({

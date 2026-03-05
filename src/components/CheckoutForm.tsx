@@ -3,9 +3,41 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { Dropdown } from "primereact/dropdown";
 import { createOrder } from "@/lib/actions/order";
 import { MessageCircle, CreditCard } from "lucide-react";
 import type { CartItemWithDetails } from "@/lib/actions/cart";
+import { COLOMBIA_CITIES } from "@/lib/data/colombia-cities";
+
+const NAME_MIN_LENGTH = 3;
+const ADDRESS_MIN_LENGTH = 5;
+const PHONE_LENGTH = 10;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function validateCustomerInfo(info: {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+}): Record<string, string> {
+  const err: Record<string, string> = {};
+  if (!info.name.trim()) err.name = "El nombre es requerido.";
+  else if (info.name.trim().length < NAME_MIN_LENGTH)
+    err.name = `El nombre debe tener al menos ${NAME_MIN_LENGTH} caracteres.`;
+  if (!info.email.trim()) err.email = "El email es requerido.";
+  else if (!EMAIL_REGEX.test(info.email.trim()))
+    err.email = "Ingresa un email válido.";
+  const phoneDigits = info.phone.replace(/\D/g, "");
+  if (!phoneDigits) err.phone = "El teléfono es requerido.";
+  else if (phoneDigits.length !== PHONE_LENGTH)
+    err.phone = `El teléfono debe tener exactamente ${PHONE_LENGTH} dígitos.`;
+  if (!info.address.trim()) err.address = "La dirección es requerida.";
+  else if (info.address.trim().length < ADDRESS_MIN_LENGTH)
+    err.address = `La dirección debe tener al menos ${ADDRESS_MIN_LENGTH} caracteres.`;
+  if (!info.city) err.city = "Selecciona una ciudad.";
+  return err;
+}
 
 type User = {
   id: string;
@@ -30,6 +62,7 @@ export function CheckoutForm({
   const [paymentMethod, setPaymentMethod] = useState<"whatsapp" | "payment">(
     "whatsapp",
   );
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [customerInfo, setCustomerInfo] = useState({
     name: user.name || "",
     email: user.email,
@@ -41,6 +74,12 @@ export function CheckoutForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const validationErrors = validateCustomerInfo(customerInfo);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+    setErrors({});
     setLoading(true);
 
     try {
@@ -158,13 +197,16 @@ ${info.notes ? `Notas: ${info.notes}` : ""}
                 <input
                   type="text"
                   id="name"
-                  required
                   value={customerInfo.name}
-                  onChange={(e) =>
-                    setCustomerInfo({ ...customerInfo, name: e.target.value })
-                  }
-                  className="w-full rounded-lg border border-light-300 px-4 py-2 text-body text-dark-900 focus:outline-none focus:ring-2 focus:ring-dark-500"
+                  onChange={(e) => {
+                    setCustomerInfo({ ...customerInfo, name: e.target.value });
+                    if (errors.name) setErrors((e) => ({ ...e, name: "" }));
+                  }}
+                  className={`w-full rounded-lg border px-4 py-2 text-body text-dark-900 focus:outline-none focus:ring-2 focus:ring-dark-500 ${errors.name ? "border-red-500" : "border-light-300"}`}
                 />
+                {errors.name && (
+                  <p className="mt-1 text-caption text-red-600">{errors.name}</p>
+                )}
               </div>
               <div>
                 <label
@@ -176,13 +218,18 @@ ${info.notes ? `Notas: ${info.notes}` : ""}
                 <input
                   type="email"
                   id="email"
-                  required
                   value={customerInfo.email}
-                  onChange={(e) =>
-                    setCustomerInfo({ ...customerInfo, email: e.target.value })
-                  }
-                  className="w-full rounded-lg border border-light-300 px-4 py-2 text-body text-dark-900 focus:outline-none focus:ring-2 focus:ring-dark-500"
+                  onChange={(e) => {
+                    setCustomerInfo({ ...customerInfo, email: e.target.value });
+                    if (errors.email) setErrors((e) => ({ ...e, email: "" }));
+                  }}
+                  className={`w-full rounded-lg border px-4 py-2 text-body text-dark-900 focus:outline-none focus:ring-2 focus:ring-dark-500 ${errors.email ? "border-red-500" : "border-light-300"}`}
                 />
+                {errors.email && (
+                  <p className="mt-1 text-caption text-red-600">
+                    {errors.email}
+                  </p>
+                )}
               </div>
               <div>
                 <label
@@ -194,14 +241,22 @@ ${info.notes ? `Notas: ${info.notes}` : ""}
                 <input
                   type="tel"
                   id="phone"
-                  required
+                  inputMode="numeric"
+                  maxLength={PHONE_LENGTH + 4}
                   value={customerInfo.phone}
-                  onChange={(e) =>
-                    setCustomerInfo({ ...customerInfo, phone: e.target.value })
-                  }
-                  className="w-full rounded-lg border border-light-300 px-4 py-2 text-body text-dark-900 focus:outline-none focus:ring-2 focus:ring-dark-500"
-                  placeholder="+57 300 123 4567"
+                  onChange={(e) => {
+                    const v = e.target.value.replace(/\D/g, "").slice(0, PHONE_LENGTH);
+                    setCustomerInfo({ ...customerInfo, phone: v });
+                    if (errors.phone) setErrors((e) => ({ ...e, phone: "" }));
+                  }}
+                  className={`w-full rounded-lg border px-4 py-2 text-body text-dark-900 focus:outline-none focus:ring-2 focus:ring-dark-500 ${errors.phone ? "border-red-500" : "border-light-300"}`}
+                  placeholder="3001234567"
                 />
+                {errors.phone && (
+                  <p className="mt-1 text-caption text-red-600">
+                    {errors.phone}
+                  </p>
+                )}
               </div>
             </div>
           </section>
@@ -213,6 +268,31 @@ ${info.notes ? `Notas: ${info.notes}` : ""}
             <div className="space-y-4">
               <div>
                 <label
+                  htmlFor="city"
+                  className="block text-body-medium text-dark-900 mb-1"
+                >
+                  Ciudad *
+                </label>
+                <Dropdown
+                  id="city"
+                  value={customerInfo.city}
+                  onChange={(e) => {
+                    setCustomerInfo({ ...customerInfo, city: e.value ?? "" });
+                    if (errors.city) setErrors((prev) => ({ ...prev, city: "" }));
+                  }}
+                  options={[...COLOMBIA_CITIES]}
+                  placeholder="Seleccionar ciudad"
+                  filter
+                  filterPlaceholder="Buscar ciudad..."
+                  className="w-full [&_.p-dropdown]:w-full"
+                  showClear
+                />
+                {errors.city && (
+                  <p className="mt-1 text-caption text-red-600">{errors.city}</p>
+                )}
+              </div>
+              <div>
+                <label
                   htmlFor="address"
                   className="block text-body-medium text-dark-900 mb-1"
                 >
@@ -221,34 +301,23 @@ ${info.notes ? `Notas: ${info.notes}` : ""}
                 <input
                   type="text"
                   id="address"
-                  required
                   value={customerInfo.address}
-                  onChange={(e) =>
+                  onChange={(e) => {
                     setCustomerInfo({
                       ...customerInfo,
                       address: e.target.value,
-                    })
-                  }
-                  className="w-full rounded-lg border border-light-300 px-4 py-2 text-body text-dark-900 focus:outline-none focus:ring-2 focus:ring-dark-500"
+                    });
+                    if (errors.address)
+                      setErrors((prev) => ({ ...prev, address: "" }));
+                  }}
+                  className={`w-full rounded-lg border px-4 py-2 text-body text-dark-900 focus:outline-none focus:ring-2 focus:ring-dark-500 ${errors.address ? "border-red-500" : "border-light-300"}`}
+                  placeholder="Calle, número, barrio..."
                 />
-              </div>
-              <div>
-                <label
-                  htmlFor="city"
-                  className="block text-body-medium text-dark-900 mb-1"
-                >
-                  Ciudad *
-                </label>
-                <input
-                  type="text"
-                  id="city"
-                  required
-                  value={customerInfo.city}
-                  onChange={(e) =>
-                    setCustomerInfo({ ...customerInfo, city: e.target.value })
-                  }
-                  className="w-full rounded-lg border border-light-300 px-4 py-2 text-body text-dark-900 focus:outline-none focus:ring-2 focus:ring-dark-500"
-                />
+                {errors.address && (
+                  <p className="mt-1 text-caption text-red-600">
+                    {errors.address}
+                  </p>
+                )}
               </div>
               <div>
                 <label
@@ -265,7 +334,7 @@ ${info.notes ? `Notas: ${info.notes}` : ""}
                   }
                   rows={3}
                   className="w-full rounded-lg border border-light-300 px-4 py-2 text-body text-dark-900 focus:outline-none focus:ring-2 focus:ring-dark-500"
-                  placeholder="Instrucciones especiales de entrega..."
+                  placeholder="Datos adicionales para la dirección, instrucciones de entrega..."
                 />
               </div>
             </div>

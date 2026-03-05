@@ -38,6 +38,10 @@ export async function getOrderById(orderId: string) {
       shippingAddressId: orders.shippingAddressId,
       billingAddressId: orders.billingAddressId,
       createdAt: orders.createdAt,
+      customerName: orders.customerName,
+      customerEmail: orders.customerEmail,
+      customerPhone: orders.customerPhone,
+      customerNotes: orders.customerNotes,
       userName: users.name,
       userEmail: users.email,
     })

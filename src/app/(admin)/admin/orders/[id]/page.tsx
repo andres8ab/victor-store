@@ -96,51 +96,62 @@ export default async function AdminOrderDetailPage({
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
         <div className="rounded-lg border border-light-300 bg-light-100 p-6">
-          <h2 className="text-heading-3 text-dark-900 mb-4">Información del Usuario</h2>
-          {order.userId ? (
-            <div className="space-y-2">
-              <p className="text-body text-dark-700">
-                <span className="font-medium">Nombre:</span> {order.userName || "N/A"}
-              </p>
-              <p className="text-body text-dark-700">
-                <span className="font-medium">Email:</span> {order.userEmail || "N/A"}
-              </p>
+          <h2 className="text-heading-3 text-dark-900 mb-4">Información del Cliente</h2>
+          <div className="space-y-2">
+            <p className="text-body text-dark-700">
+              <span className="font-medium">Nombre:</span>{" "}
+              {order.customerName ?? order.userName ?? "N/A"}
+            </p>
+            <p className="text-body text-dark-700">
+              <span className="font-medium">Email:</span>{" "}
+              {order.customerEmail ?? order.userEmail ?? "N/A"}
+            </p>
+            <p className="text-body text-dark-700">
+              <span className="font-medium">Teléfono:</span>{" "}
+              {order.customerPhone ?? "—"}
+            </p>
+            {order.userId && (
               <Link
                 href={`/admin/users/${order.userId}`}
                 className="inline-block mt-4 text-body-medium text-green hover:underline"
               >
                 Ver perfil del usuario →
               </Link>
-            </div>
-          ) : (
-            <p className="text-body text-dark-500">Pedido de invitado</p>
-          )}
+            )}
+          </div>
         </div>
 
         <div className="rounded-lg border border-light-300 bg-light-100 p-6">
-          <h2 className="text-heading-3 text-dark-900 mb-4">Direcciones</h2>
+          <h2 className="text-heading-3 text-dark-900 mb-4">Dirección de Envío</h2>
           <div className="space-y-4">
-            {order.shippingAddress && (
+            {order.shippingAddress ? (
               <div>
-                <p className="text-body-medium text-dark-900 mb-2">
-                  Dirección de Envío
-                </p>
                 <p className="text-body text-dark-700">
+                  <span className="font-medium">Ciudad:</span>{" "}
+                  {order.shippingAddress.city}
+                  <br />
+                  <span className="font-medium">Dirección:</span>{" "}
                   {order.shippingAddress.line1}
-                  {order.shippingAddress.line2 && (
-                    <>
-                      <br />
-                      {order.shippingAddress.line2}
-                    </>
-                  )}
-                  <br />
-                  {order.shippingAddress.city}, {order.shippingAddress.state}
-                  <br />
-                  {order.shippingAddress.postalCode}
                   <br />
                   {order.shippingAddress.country}
                 </p>
+                {(order.customerNotes ?? order.shippingAddress.line2) && (
+                  <p className="text-body text-dark-700 mt-2">
+                    <span className="font-medium">Notas:</span>{" "}
+                    {order.customerNotes ?? order.shippingAddress.line2}
+                  </p>
+                )}
               </div>
+            ) : order.customerNotes ? (
+              <div>
+                <p className="text-body text-dark-500">Sin dirección guardada.</p>
+                <p className="text-body text-dark-700 mt-2">
+                  <span className="font-medium">Notas del pedido:</span>{" "}
+                  {order.customerNotes}
+                </p>
+              </div>
+            ) : (
+              <p className="text-body text-dark-500">Sin dirección de envío</p>
             )}
             {order.billingAddress && (
               <div>

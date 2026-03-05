@@ -70,8 +70,9 @@ export async function createOrder({
             userId: user.id,
             type: "shipping",
             line1: customerInfo.address,
+            line2: customerInfo.notes?.trim() || null,
             city: customerInfo.city,
-            state: customerInfo.city, // Using city as state for simplicity
+            state: customerInfo.city,
             country: "Colombia",
             postalCode: "000000",
             isDefault: false,
@@ -81,7 +82,7 @@ export async function createOrder({
       }
     }
 
-    // Create order
+    // Create order (with customer snapshot from checkout)
     const newOrder = await db
       .insert(orders)
       .values({
@@ -90,6 +91,10 @@ export async function createOrder({
         totalAmount: totalAmount.toFixed(2),
         shippingAddressId: addressId,
         billingAddressId: addressId,
+        customerName: customerInfo.name.trim() || null,
+        customerEmail: customerInfo.email.trim() || null,
+        customerPhone: customerInfo.phone.trim() || null,
+        customerNotes: customerInfo.notes?.trim() || null,
       })
       .returning();
 

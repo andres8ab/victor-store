@@ -165,6 +165,29 @@ export async function getAllProductsForAdmin() {
   return allProducts;
 }
 
+export async function getProductsForCatalog() {
+  await requireAdmin();
+
+  const rows = await db
+    .select({
+      id: products.id,
+      name: products.name,
+      description: products.description,
+      price: products.price,
+      salePrice: products.salePrice,
+      inStock: products.inStock,
+      isPublished: products.isPublished,
+      categoryName: categories.name,
+      brandName: brands.name,
+    })
+    .from(products)
+    .leftJoin(categories, eq(products.categoryId, categories.id))
+    .leftJoin(brands, eq(products.brandId, brands.id))
+    .orderBy(sql`${products.name} ASC`);
+
+  return rows;
+}
+
 export async function getProductWithVariantsForAdmin(productId: string) {
   await requireAdmin();
 

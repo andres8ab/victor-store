@@ -5,6 +5,7 @@ import { getAllCategoriesForAdmin } from "@/lib/actions/admin/categories";
 import { getAllBrandsForAdmin } from "@/lib/actions/admin/brands";
 import ProductsTable from "@/components/admin/ProductsTable";
 import CreateProductButton from "@/components/admin/CreateProductButton";
+import DownloadCatalogButton from "@/components/admin/DownloadCatalogButton";
 
 export default async function AdminProductsPage() {
   const admin = await isAdmin();
@@ -21,7 +22,10 @@ export default async function AdminProductsPage() {
     <div>
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
         <h1 className="text-heading-2 text-dark-900">Productos</h1>
-        <CreateProductButton categories={categories} brands={brands} />
+        <div className="flex flex-wrap items-center gap-2">
+          <DownloadCatalogButton />
+          <CreateProductButton categories={categories} brands={brands} />
+        </div>
       </div>
 
       <ProductsTable products={products} />

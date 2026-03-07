@@ -1,0 +1,105 @@
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { getCurrentUser } from "@/lib/auth/actions";
+import { getMyOrders } from "@/lib/actions/order";
+import { ArrowLeft, ShoppingBag, Package } from "lucide-react";
+
+const statusLabels: Record<string, string> = {
+  pending: "Pendiente",
+  paid: "Pagado",
+  shipped: "Enviado",
+  delivered: "Entregado",
+  cancelled: "Cancelado",
+};
+
+const statusColors: Record<string, string> = {
+  pending: "bg-orange/20 text-orange",
+  paid: "bg-green/20 text-green",
+  shipped: "bg-blue-500/20 text-blue-500",
+  delivered: "bg-green/20 text-green",
+  cancelled: "bg-red/20 text-red",
+};
+
+export default async function OrdersPage() {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/sign-in?redirect=/orders");
+  }
+
+  const ordersList = await getMyOrders(user.id);
+
+  return (
+    <main className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
+      <Link
+        href="/profile"
+        className="mb-6 inline-flex items-center gap-2 text-body text-dark-700 hover:text-dark-900 transition-colors"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Volver al perfil
+      </Link>
+
+      <h1 className="text-heading-2 text-dark-900 mb-2">
+        Historial de Pedidos
+      </h1>
+      <p className="text-body text-dark-700 mb-8">
+        Aquí puedes ver todos tus pedidos y su estado.
+      </p>
+
+      {ordersList.length === 0 ? (
+        <div className="rounded-lg border border-light-300 bg-light-100 p-12 text-center">
+          <Package className="mx-auto h-12 w-12 text-dark-400 mb-4" />
+          <p className="text-body text-dark-700 mb-4">
+            Aún no tienes pedidos.
+          </p>
+          <Link
+            href="/products"
+            className="inline-block rounded-full bg-dark-900 px-6 py-3 text-body-medium text-light-100 transition hover:opacity-90"
+          >
+            Explorar productos
+          </Link>
+        </div>
+      ) : (
+        <ul className="space-y-4">
+          {ordersList.map((order) => (
+            <li key={order.id}>
+              <Link
+                href={`/orders/${order.id}`}
+                className="block rounded-lg border border-light-300 bg-light-100 p-4 transition hover:border-dark-500 hover:bg-light-200 sm:p-6"
+              >
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+                    <span className="text-body-medium text-dark-900">
+                      Pedido #{order.id.slice(0, 8)}
+                    </span>
+                    <span
+                      className={`inline-block rounded-full px-3 py-1 text-footnote ${statusColors[order.status] ?? "bg-dark-500/20 text-dark-500"}`}
+                    >
+                      {statusLabels[order.status] ?? order.status}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-1 sm:items-end">
+                    <span className="text-body text-dark-700">
+                      {order.createdAt
+                        ? new Date(order.createdAt).toLocaleDateString("es-CO", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : "—"}
+                    </span>
+                    <span className="text-body-medium text-dark-900">
+                      ${order.totalAmount.toLocaleString("es-CO")}
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </main>
+  );
+}

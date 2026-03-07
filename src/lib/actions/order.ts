@@ -1,8 +1,8 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { orders, orderItems, addresses, carts, cartItems } from "@/lib/db/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { orders, orderItems, addresses, carts, cartItems, products } from "@/lib/db/schema";
+import { eq, and, desc, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "../auth/actions";
 
@@ -130,5 +130,84 @@ export async function createOrder({
     console.error("Error creating order:", error);
     return { success: false, error: "Error al crear el pedido" };
   }
+}
+
+export async function getMyOrders(userId: string) {
+  const ordersList = await db
+    .select({
+      id: orders.id,
+      status: orders.status,
+      totalAmount: orders.totalAmount,
+      createdAt: orders.createdAt,
+    })
+    .from(orders)
+    .where(eq(orders.userId, userId))
+    .orderBy(desc(orders.createdAt));
+
+  return ordersList.map((o) => ({
+    id: o.id,
+    status: o.status,
+    totalAmount: Number(o.totalAmount),
+    createdAt: o.createdAt,
+  }));
+}
+
+export async function getMyOrderById(orderId: string, userId: string) {
+  const [order] = await db
+    .select({
+      id: orders.id,
+      userId: orders.userId,
+      status: orders.status,
+      totalAmount: sql<number>`${orders.totalAmount}::numeric`,
+      shippingAddressId: orders.shippingAddressId,
+      billingAddressId: orders.billingAddressId,
+      createdAt: orders.createdAt,
+      customerName: orders.customerName,
+      customerEmail: orders.customerEmail,
+      customerPhone: orders.customerPhone,
+      customerNotes: orders.customerNotes,
+    })
+    .from(orders)
+    .where(eq(orders.id, orderId))
+    .limit(1);
+
+  if (!order || order.userId !== userId) {
+    return null;
+  }
+
+  const items = await db
+    .select({
+      id: orderItems.id,
+      productId: orderItems.productId,
+      quantity: orderItems.quantity,
+      priceAtPurchase: sql<number>`${orderItems.priceAtPurchase}::numeric`,
+      productName: products.name,
+    })
+    .from(orderItems)
+    .innerJoin(products, eq(orderItems.productId, products.id))
+    .where(eq(orderItems.orderId, orderId));
+
+  const shippingAddress = order.shippingAddressId
+    ? await db
+        .select()
+        .from(addresses)
+        .where(eq(addresses.id, order.shippingAddressId))
+        .limit(1)
+    : null;
+
+  const billingAddress = order.billingAddressId
+    ? await db
+        .select()
+        .from(addresses)
+        .where(eq(addresses.id, order.billingAddressId))
+        .limit(1)
+    : null;
+
+  return {
+    ...order,
+    items,
+    shippingAddress: shippingAddress?.[0] ?? null,
+    billingAddress: billingAddress?.[0] ?? null,
+  };
 }
 

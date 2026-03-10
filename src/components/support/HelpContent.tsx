@@ -42,7 +42,8 @@ export default function HelpContent() {
                     </div>
                     <h3 className="text-lg font-semibold text-dark-900 mb-2">Visítanos</h3>
                     <p className="text-dark-700 text-sm">
-                        Carrera 38 #43-07<br />
+                        <strong>Principal:</strong> Carrera 38 #43-07<br />
+                        <strong>Sede Norte:</strong> Carrera 46 #75-109<br />
                         Barranquilla, Colombia
                     </p>
                 </div>

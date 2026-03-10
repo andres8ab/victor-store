@@ -95,7 +95,9 @@ export default function ContactPage() {
             <div>
               <h3 className="text-body-medium text-dark-900">Dirección</h3>
               <p className="text-body text-dark-700">
-                Carrera 38 #43-07
+                <strong>Principal:</strong> Carrera 38 #43-07
+                <br />
+                <strong>Sede Norte:</strong> Carrera 46 #75-109
                 <br />
                 Barranquilla, Atlántico, 08001 Colombia
               </p>

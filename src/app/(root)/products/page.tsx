@@ -1,6 +1,7 @@
 import { Card } from "@/components";
 import Filters from "@/components/Filters";
 import Sort from "@/components/Sort";
+import ProductsPagination from "@/components/ProductsPagination";
 import { parseFilterParams } from "@/lib/utils/query";
 import { getAllProducts } from "@/lib/actions/product";
 import { getAllCategories } from "@/lib/actions/category";
@@ -85,19 +86,25 @@ export default async function ProductsPage({
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 pb-6">
-              {products.map((p) => (
-                <Card
-                  key={p.id}
-                  title={p.name}
-                  subtitle={p.subtitle ?? undefined}
-                  imageSrc={p.imageUrl ?? "/parts/noImage.png"}
-                  price={p.price ?? undefined}
-                  salePrice={p.salePrice ?? undefined}
-                  href={`/products/${p.id}`}
-                />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 pb-6">
+                {products.map((p) => (
+                  <Card
+                    key={p.id}
+                    title={p.name}
+                    subtitle={p.subtitle ?? undefined}
+                    imageSrc={p.imageUrl ?? "/parts/noImage.png"}
+                    price={p.price ?? undefined}
+                    salePrice={p.salePrice ?? undefined}
+                    href={`/products/${p.id}`}
+                  />
+                ))}
+              </div>
+              <ProductsPagination
+                totalCount={totalCount}
+                defaultLimit={parsed.limit ?? 24}
+              />
+            </>
           )}
         </div>
       </section>

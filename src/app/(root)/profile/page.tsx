@@ -3,6 +3,8 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/actions";
 import { UserCircle, ShoppingBag } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export default async function ProfilePage() {
   const user = await getCurrentUser();
 

@@ -12,13 +12,15 @@
   --color-light-300: #e5e5e5;
   --color-light-400: #cccccc;
 
+  /* Accent — industrial amber (wiring / señal) */
+  --color-primary-400: #f5b83d;
+  --color-primary-500: #e5a20c;
+  --color-primary-600: #b87a08;
+
   /* Supporting colors */
   --color-green: #007d48;
   --color-red: #d33918;
   --color-orange: #d37918;
-
-  /* Font family */
-  --font-jost: "Jost", sans-serif;
 
   /* Heading sizes */
   --text-heading-1: 72px;
@@ -56,6 +58,67 @@
   --text-footnote: 12px;
   --text-footnote--line-height: 18px;
   --text-footnote--font-weight: 400;
+}
+
+/* Shop canvas: warm neutral + faint technical grid */
+/* Soft “star speckle” (tiny dots) — no grid */
+.bg-shop-canvas {
+  --shop-speckle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96'%3E%3Cg fill='%23111111' opacity='.055'%3E%3Ccircle cx='8' cy='14' r='.65'/%3E%3Ccircle cx='31' cy='9' r='.45'/%3E%3Ccircle cx='52' cy='22' r='.55'/%3E%3Ccircle cx='71' cy='11' r='.4'/%3E%3Ccircle cx='88' cy='28' r='.5'/%3E%3Ccircle cx='19' cy='38' r='.5'/%3E%3Ccircle cx='44' cy='33' r='.38'/%3E%3Ccircle cx='67' cy='41' r='.6'/%3E%3Ccircle cx='12' cy='58' r='.42'/%3E%3Ccircle cx='36' cy='52' r='.55'/%3E%3Ccircle cx='58' cy='61' r='.48'/%3E%3Ccircle cx='82' cy='54' r='.4'/%3E%3Ccircle cx='25' cy='76' r='.52'/%3E%3Ccircle cx='49' cy='71' r='.45'/%3E%3Ccircle cx='73' cy='79' r='.58'/%3E%3Ccircle cx='91' cy='68' r='.35'/%3E%3Ccircle cx='6' cy='86' r='.4'/%3E%3Ccircle cx='54' cy='88' r='.5'/%3E%3C/g%3E%3Cg fill='%23b87a08' opacity='.04'%3E%3Ccircle cx='22' cy='26' r='.5'/%3E%3Ccircle cx='76' cy='36' r='.4'/%3E%3Ccircle cx='41' cy='47' r='.45'/%3E%3Ccircle cx='15' cy='72' r='.38'/%3E%3Ccircle cx='63' cy='17' r='.42'/%3E%3Ccircle cx='85' cy='91' r='.35'/%3E%3C/g%3E%3C/svg%3E");
+  background-color: #f0eeeb;
+  background-image: var(--shop-speckle), var(--shop-speckle),
+    radial-gradient(
+      ellipse 120% 80% at 50% -20%,
+      rgb(229 162 12 / 8%),
+      transparent 55%
+    );
+  background-size: 96px 96px, 96px 96px, 100% 100%;
+  background-position:
+    0 0,
+    52px 44px,
+    center top;
+}
+
+.font-display {
+  font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Film grain overlay (SVG turbulence) */
+.grain-overlay {
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.12'/%3E%3C/svg%3E");
+}
+
+@keyframes home-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(1.25rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-home-fade-up {
+  animation: home-fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-home-delay-1 {
+  animation-delay: 0.1s;
+}
+.animate-home-delay-2 {
+  animation-delay: 0.2s;
+}
+.animate-home-delay-3 {
+  animation-delay: 0.35s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-home-fade-up {
+    animation: none;
+    opacity: 1 !important;
+    transform: none;
+  }
 }
 
 .cart-badge-small {

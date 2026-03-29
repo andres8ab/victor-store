@@ -5,6 +5,8 @@ import { CartActions } from "@/components/CartActions";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/actions";
 
+export const dynamic = "force-dynamic";
+
 export default async function CartPage() {
   const user = await getCurrentUser();
 

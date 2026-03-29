@@ -31,23 +31,33 @@ const Home = async () => {
     .filter((p) => !usedIds.has(p.id))
     .slice(0, ITEMS_PER_SECTION);
 
-  console.log(latest, mostPurchased, featured);
-
   return (
-    <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div className="space-y-12 pb-12 pt-6">
+    <main className="mx-auto w-full max-w-7xl flex-1 px-4 sm:px-6 lg:px-8">
+      <div className="space-y-16 pb-16 pt-8 md:space-y-20 md:pb-24 md:pt-10">
         <Hero />
 
         {latest.length > 0 && (
-          <ProductCarousel title="Lo Más Nuevo" products={latest} />
+          <ProductCarousel
+            title="Lo Más Nuevo"
+            products={latest}
+            sectionIndex={1}
+          />
         )}
 
         {mostPurchased.length > 0 && (
-          <ProductCarousel title="Más Vendidos" products={mostPurchased} />
+          <ProductCarousel
+            title="Más Vendidos"
+            products={mostPurchased}
+            sectionIndex={2}
+          />
         )}
 
         {featured.length > 0 && (
-          <ProductCarousel title="Destacados" products={featured} />
+          <ProductCarousel
+            title="Destacados"
+            products={featured}
+            sectionIndex={3}
+          />
         )}
       </div>
     </main>

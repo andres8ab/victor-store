@@ -17,6 +17,8 @@ export function CartLink() {
 
   // Sync cart count on mount
   useEffect(() => {
+    useCartStore.persist.rehydrate();
+
     if (!user) {
       syncCountFromServer(0);
       return;

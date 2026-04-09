@@ -59,10 +59,12 @@ export function CheckoutForm({
   user: User;
 }) {
   const [loading, setLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<"whatsapp" | "payment">(
+  const [paymentMethod, setPaymentMethod] = useState<"whatsapp" | "wompi">(
     "whatsapp",
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [wompiRedirectUrl, setWompiRedirectUrl] = useState<string | null>(null);
   const [customerInfo, setCustomerInfo] = useState({
     name: user.name || "",
     email: user.email,
@@ -80,6 +82,7 @@ export function CheckoutForm({
       return;
     }
     setErrors({});
+    setSubmitError(null);
     setLoading(true);
 
     try {
@@ -111,10 +114,10 @@ export function CheckoutForm({
           // Redirect to success page
           window.location.href = `/checkout/success?orderId=${orderResult.orderId}`;
         } else {
-          alert(orderResult.error || "Error al crear el pedido");
+          setSubmitError(orderResult.error || "Error al crear el pedido");
         }
       } else {
-        // Payment gateway flow (Wompi/PayU)
+        // Wompi online payment flow
         const orderResult = await createOrder({
           items: cartItems.map((item) => ({
             productId: item.productId,
@@ -124,22 +127,21 @@ export function CheckoutForm({
               : Number(item.product.price),
           })),
           customerInfo,
-          paymentMethod: "payment",
+          paymentMethod: "wompi",
         });
 
         if (orderResult.success && orderResult.orderId) {
-          // Redirect to payment gateway
-          // This would typically redirect to Wompi or PayU
-          // For now, we'll show a placeholder
-          alert("Redirigiendo al procesador de pagos...");
-          // window.location.href = `/api/payment/initiate?orderId=${orderResult.orderId}`;
+          const initiateUrl = `/api/payment/initiate?orderId=${orderResult.orderId}`;
+          setWompiRedirectUrl(initiateUrl);
+          window.location.href = initiateUrl;
+          return; // keep loading state while browser navigates
         } else {
-          alert(orderResult.error || "Error al crear el pedido");
+          setSubmitError(orderResult.error || "Error al crear el pedido");
         }
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("Ocurrió un error al procesar el pedido");
+      setSubmitError("Ocurrió un error al procesar el pedido");
     } finally {
       setLoading(false);
     }
@@ -352,7 +354,7 @@ ${info.notes ? `Notas: ${info.notes}` : ""}
                   value="whatsapp"
                   checked={paymentMethod === "whatsapp"}
                   onChange={(e) =>
-                    setPaymentMethod(e.target.value as "whatsapp" | "payment")
+                    setPaymentMethod(e.target.value as "whatsapp" | "wompi")
                   }
                   className="h-4 w-4 accent-dark-900"
                 />
@@ -366,14 +368,14 @@ ${info.notes ? `Notas: ${info.notes}` : ""}
                   </p>
                 </div>
               </label>
-              <label className="flex items-center gap-3 p-4 rounded-lg border border-light-300 cursor-pointer hover:border-dark-500 transition">
+              {/* <label className="flex items-center gap-3 p-4 rounded-lg border border-light-300 cursor-pointer hover:border-dark-500 transition">
                 <input
                   type="radio"
                   name="payment"
-                  value="payment"
-                  checked={paymentMethod === "payment"}
+                  value="wompi"
+                  checked={paymentMethod === "wompi"}
                   onChange={(e) =>
-                    setPaymentMethod(e.target.value as "whatsapp" | "payment")
+                    setPaymentMethod(e.target.value as "whatsapp" | "wompi")
                   }
                   className="h-4 w-4 accent-dark-900"
                 />
@@ -386,7 +388,8 @@ ${info.notes ? `Notas: ${info.notes}` : ""}
                     Paga con tarjeta de crédito o débito
                   </p>
                 </div>
-              </label>
+              </label> */}
+              {/* TODO: Add wompi payment method */}
             </div>
           </section>
         </div>
@@ -441,16 +444,22 @@ ${info.notes ? `Notas: ${info.notes}` : ""}
               <span>${total.toFixed(2)}</span>
             </div>
 
+            {submitError && (
+              <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-body text-red-700">
+                {submitError}
+              </div>
+            )}
+
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-full bg-dark-900 px-6 py-4 text-body-medium text-light-100 transition hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full rounded-full cursor-pointer bg-dark-900 px-6 py-4 text-body-medium text-light-100 transition hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading
                 ? "Procesando..."
                 : paymentMethod === "whatsapp"
                   ? "Enviar por WhatsApp"
-                  : "Pagar Ahora"}
+                  : "Pagar con Wompi"}
             </button>
 
             <Link
@@ -462,6 +471,25 @@ ${info.notes ? `Notas: ${info.notes}` : ""}
           </div>
         </div>
       </div>
+      {wompiRedirectUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-dark-900/60 backdrop-blur-sm">
+          <div className="mx-4 w-full max-w-sm rounded-xl bg-light-100 p-8 text-center shadow-xl">
+            <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-light-300 border-t-dark-900" />
+            <p className="text-body-medium text-dark-900 mb-2">
+              Redirigiendo a la pasarela de pago...
+            </p>
+            <p className="text-caption text-dark-700 mb-6">
+              Si no eres redirigido automáticamente, haz clic en el botón.
+            </p>
+            <a
+              href={wompiRedirectUrl}
+              className="inline-block rounded-full bg-dark-900 px-6 py-3 text-body-medium text-light-100 transition hover:opacity-90"
+            >
+              Ir al pago
+            </a>
+          </div>
+        </div>
+      )}
     </form>
   );
 }

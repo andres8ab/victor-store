@@ -4,7 +4,7 @@ import { z } from "zod";
 import { orders } from "./orders";
 
 export const paymentMethodEnum = pgEnum("payment_method", [
-  "stripe",
+  "wompi",
   "paypal",
   "cod",
 ]);
@@ -34,7 +34,7 @@ export const paymentsRelations = relations(payments, ({ one }) => ({
 
 export const insertPaymentSchema = z.object({
   orderId: z.string().uuid(),
-  method: z.enum(["stripe", "paypal", "cod"]),
+  method: z.enum(["wompi", "paypal", "cod"]),
   status: z.enum(["initiated", "completed", "failed"]).optional(),
   paidAt: z.date().optional().nullable(),
   transactionId: z.string().optional().nullable(),

@@ -16,9 +16,48 @@ const bebasNeue = Bebas_Neue({
   variable: "--font-display",
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://todoelectricovicto.com";
+
 export const metadata: Metadata = {
-  title: "Todo Electrico Victor",
-  description: "E-commerce de partes electricas para vehiculos",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Todo Eléctrico Víctor | Partes Eléctricas para Vehículos",
+    template: "%s | Todo Eléctrico Víctor",
+  },
+  description:
+    "Encuentra partes eléctricas para tu vehículo: alternadores, motores de arranque, bombas de agua, sensores y más. Envíos a toda Colombia.",
+  keywords: [
+    "partes eléctricas vehículos",
+    "repuestos eléctricos Colombia",
+    "alternador",
+    "motor de arranque",
+    "bomba de agua",
+    "repuestos automotriz",
+    "Todo Eléctrico Víctor",
+  ],
+  openGraph: {
+    type: "website",
+    locale: "es_CO",
+    url: SITE_URL,
+    siteName: "Todo Eléctrico Víctor",
+    title: "Todo Eléctrico Víctor | Partes Eléctricas para Vehículos",
+    description:
+      "Encuentra partes eléctricas para tu vehículo: alternadores, motores de arranque, bombas de agua, sensores y más. Envíos a toda Colombia.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Todo Eléctrico Víctor | Partes Eléctricas para Vehículos",
+    description:
+      "Encuentra partes eléctricas para tu vehículo. Envíos a toda Colombia.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
+  },
 };
 
 export default function RootLayout({

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { type Metadata } from "next";
 import { CollapsibleSection, Card, ProductDetails } from "@/components";
 import { Star } from "lucide-react";
 import {
@@ -9,6 +10,57 @@ import {
   type Review,
   type RecommendedProduct,
 } from "@/lib/actions/product";
+
+export const revalidate = 3600; // revalidate product pages every hour
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const data = await getProduct(id);
+
+  if (!data) {
+    return { title: "Producto no encontrado" };
+  }
+
+  const { product, images } = data;
+  const primaryImage =
+    images.find((img) => img.isPrimary) ?? images[0];
+  const price = product.salePrice
+    ? Number(product.salePrice)
+    : Number(product.price);
+  const formattedPrice = new Intl.NumberFormat("es-CO", {
+    style: "currency",
+    currency: "COP",
+    maximumFractionDigits: 0,
+  }).format(price);
+
+  const title = product.brand
+    ? `${product.name} – ${product.brand.name}`
+    : product.name;
+  const description = `${product.description.slice(0, 145)}… ${formattedPrice}`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      images: primaryImage
+        ? [{ url: primaryImage.url, alt: product.name }]
+        : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: primaryImage ? [primaryImage.url] : [],
+    },
+  };
+}
 
 function NotFoundBlock() {
   return (
@@ -139,8 +191,38 @@ export default async function ProductDetailPage({
 
   const { product, images } = data;
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description,
+    image: images.map((img) => img.url),
+    ...(product.brand && {
+      brand: { "@type": "Brand", name: product.brand.name },
+    }),
+    offers: {
+      "@type": "Offer",
+      priceCurrency: "COP",
+      price: product.salePrice
+        ? Number(product.salePrice)
+        : Number(product.price),
+      availability:
+        product.inStock > 0
+          ? "https://schema.org/InStock"
+          : "https://schema.org/OutOfStock",
+      seller: {
+        "@type": "Organization",
+        name: "Todo Eléctrico Víctor",
+      },
+    },
+  };
+
   return (
     <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <nav className="py-4 text-caption text-dark-700">
         <Link href="/" className="hover:underline">
           Home

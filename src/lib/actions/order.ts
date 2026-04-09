@@ -28,7 +28,7 @@ export async function createOrder({
 }: {
   items: CreateOrderItem[];
   customerInfo: CustomerInfo;
-  paymentMethod: "whatsapp" | "payment";
+  paymentMethod: "whatsapp" | "wompi";
 }) {
   const user = await getCurrentUser();  
   if (!user) {
@@ -87,7 +87,7 @@ export async function createOrder({
       .insert(orders)
       .values({
         userId: user.id,
-        status: paymentMethod === "whatsapp" ? "pending" : "pending",
+        status: "pending",
         totalAmount: totalAmount.toFixed(2),
         shippingAddressId: addressId,
         billingAddressId: addressId,
@@ -95,6 +95,7 @@ export async function createOrder({
         customerEmail: customerInfo.email.trim() || null,
         customerPhone: customerInfo.phone.trim() || null,
         customerNotes: customerInfo.notes?.trim() || null,
+        paymentMethod,
       })
       .returning();
 
@@ -139,6 +140,17 @@ export async function getMyOrders(userId: string) {
       status: orders.status,
       totalAmount: orders.totalAmount,
       createdAt: orders.createdAt,
+      paymentMethod: sql<string | null>`COALESCE(${orders.paymentMethod}, (
+        SELECT method::text FROM payments
+        WHERE order_id = orders.id
+        LIMIT 1
+      ))`,
+      paymentStatus: sql<string | null>`(
+        SELECT status::text FROM payments
+        WHERE order_id = orders.id
+        ORDER BY CASE status::text WHEN 'completed' THEN 1 WHEN 'failed' THEN 2 ELSE 3 END
+        LIMIT 1
+      )`,
     })
     .from(orders)
     .where(eq(orders.userId, userId))
@@ -149,6 +161,8 @@ export async function getMyOrders(userId: string) {
     status: o.status,
     totalAmount: Number(o.totalAmount),
     createdAt: o.createdAt,
+    paymentMethod: o.paymentMethod,
+    paymentStatus: o.paymentStatus,
   }));
 }
 
@@ -166,6 +180,17 @@ export async function getMyOrderById(orderId: string, userId: string) {
       customerEmail: orders.customerEmail,
       customerPhone: orders.customerPhone,
       customerNotes: orders.customerNotes,
+      paymentMethod: sql<string | null>`COALESCE(${orders.paymentMethod}, (
+        SELECT method::text FROM payments
+        WHERE order_id = orders.id
+        LIMIT 1
+      ))`,
+      paymentStatus: sql<string | null>`(
+        SELECT status::text FROM payments
+        WHERE order_id = orders.id
+        ORDER BY CASE status::text WHEN 'completed' THEN 1 WHEN 'failed' THEN 2 ELSE 3 END
+        LIMIT 1
+      )`,
     })
     .from(orders)
     .where(eq(orders.id, orderId))

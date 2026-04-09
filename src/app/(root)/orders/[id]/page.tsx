@@ -2,28 +2,22 @@ import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/actions";
 import { getMyOrderById } from "@/lib/actions/order";
+import { syncWompiTransactionByReference } from "@/lib/actions/payment";
 import { ArrowLeft } from "lucide-react";
+import { PaymentBadges } from "@/components";
 
-const statusLabels: Record<string, string> = {
-  pending: "Pendiente",
-  paid: "Pagado",
-  shipped: "Enviado",
-  delivered: "Entregado",
-  cancelled: "Cancelado",
-};
-
-const statusColors: Record<string, string> = {
-  pending: "bg-orange/20 text-orange",
-  paid: "bg-green/20 text-green",
-  shipped: "bg-blue-500/20 text-blue-500",
-  delivered: "bg-green/20 text-green",
-  cancelled: "bg-red/20 text-red",
+const paymentErrorMessages: Record<string, string> = {
+  config: "Hubo un problema al conectar con la pasarela de pago. Por favor intenta de nuevo.",
+  not_found: "No encontramos el pedido asociado a ese intento de pago.",
+  invalid: "El enlace de pago no es válido.",
 };
 
 export default async function OrderDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ paymentError?: string }>;
 }) {
   const user = await getCurrentUser();
 
@@ -31,12 +25,25 @@ export default async function OrderDetailPage({
     redirect("/sign-in?redirect=/orders");
   }
 
-  const { id } = await params;
-  const order = await getMyOrderById(id, user.id);
+  const [{ id }, { paymentError }] = await Promise.all([params, searchParams]);
+
+  // Load the order first, then sync if it's a pending wompi order
+  let order = await getMyOrderById(id, user.id);
 
   if (!order) {
     notFound();
   }
+
+  if (order.paymentMethod === "wompi" && order.status !== "paid" && order.status !== "cancelled") {
+    await syncWompiTransactionByReference(id);
+    // Re-fetch to get the updated status
+    order = await getMyOrderById(id, user.id) ?? order;
+  }
+
+  const needsPayment =
+    order.status === "pending" &&
+    order.paymentMethod === "wompi" &&
+    order.paymentStatus !== "completed";
 
   return (
     <main className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
@@ -48,16 +55,21 @@ export default async function OrderDetailPage({
         Volver a pedidos
       </Link>
 
+      {paymentError && (
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-body text-red-700">
+          {paymentErrorMessages[paymentError] ?? "Ocurrió un error con el pago."}
+        </div>
+      )}
+
       <div className="mb-8">
         <h1 className="text-heading-2 text-dark-900 mb-4">
           Pedido #{order.id.slice(0, 8)}
         </h1>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
-          <span
-            className={`inline-block rounded-full px-3 py-1 text-footnote ${statusColors[order.status] ?? "bg-dark-500/20 text-dark-500"}`}
-          >
-            {statusLabels[order.status] ?? order.status}
-          </span>
+        <div className="flex flex-wrap items-center gap-3">
+          <PaymentBadges
+            paymentMethod={order.paymentMethod}
+            paymentStatus={order.paymentStatus}
+          />
           <span className="text-body text-dark-700">
             {order.createdAt
               ? new Date(order.createdAt).toLocaleDateString("es-CO", {
@@ -69,6 +81,14 @@ export default async function OrderDetailPage({
                 })
               : "—"}
           </span>
+          {needsPayment && (
+            <a
+              href={`/api/payment/initiate?orderId=${order.id}`}
+              className="rounded-full bg-dark-900 px-5 py-2 text-body-medium text-light-100 transition hover:opacity-90"
+            >
+              Completar pago
+            </a>
+          )}
         </div>
       </div>
 

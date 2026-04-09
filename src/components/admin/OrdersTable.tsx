@@ -3,6 +3,7 @@
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import Link from "next/link";
+import { PaymentBadges } from "@/components";
 
 type Order = {
   id: string;
@@ -12,44 +13,27 @@ type Order = {
   createdAt: Date;
   userName: string | null;
   userEmail: string | null;
+  paymentMethod: string | null;
+  paymentStatus: string | null;
 };
 
 type Props = {
-  orders: Order[];
+  readonly orders: Order[];
 };
 
+const orderStatusConfig: Record<string, { label: string; className: string }> =
+  {
+    pending: { label: "Pendiente", className: "bg-orange/20 text-orange" },
+    paid: { label: "Pagado", className: "bg-green/20 text-green" },
+    shipped: { label: "Enviado", className: "bg-blue-500/20 text-blue-500" },
+    delivered: { label: "Entregado", className: "bg-green/20 text-green" },
+    cancelled: { label: "Cancelado", className: "bg-red/20 text-red" },
+  };
+
 export default function OrdersTable({ orders }: Props) {
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "pending":
-        return "bg-orange/20 text-orange";
-      case "paid":
-        return "bg-green/20 text-green";
-      case "shipped":
-        return "bg-blue-500/20 text-blue-500";
-      case "delivered":
-        return "bg-green/20 text-green";
-      case "cancelled":
-        return "bg-red/20 text-red";
-      default:
-        return "bg-dark-500/20 text-dark-500";
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    const labels: Record<string, string> = {
-      pending: "Pendiente",
-      paid: "Pagado",
-      shipped: "Enviado",
-      delivered: "Entregado",
-      cancelled: "Cancelado",
-    };
-    return labels[status] || status;
-  };
-
-  const idBodyTemplate = (rowData: Order) => {
-    return <span className="text-body text-dark-700">{rowData.id.slice(0, 8)}...</span>;
-  };
+  const idBodyTemplate = (rowData: Order) => (
+    <span className="text-body text-dark-700">{rowData.id.slice(0, 8)}...</span>
+  );
 
   const userBodyTemplate = (rowData: Order) => {
     if (rowData.userId) {
@@ -65,48 +49,52 @@ export default function OrdersTable({ orders }: Props) {
     return <span className="text-body text-dark-500">Anónimo</span>;
   };
 
-  const totalBodyTemplate = (rowData: Order) => {
+  const totalBodyTemplate = (rowData: Order) => (
+    <span className="text-body-medium text-dark-900">
+      ${Number(rowData.totalAmount).toLocaleString("es-CO")}
+    </span>
+  );
+
+  const paymentBodyTemplate = (rowData: Order) => {
+    if (!rowData.paymentMethod) {
+      const cfg = orderStatusConfig[rowData.status];
+      return (
+        <span
+          className={`inline-block rounded-full px-3 py-1 text-footnote ${cfg?.className ?? "bg-dark-500/20 text-dark-500"}`}
+        >
+          {cfg?.label ?? rowData.status}
+        </span>
+      );
+    }
+
     return (
-      <span className="text-body-medium text-dark-900">
-        ${Number(rowData.totalAmount).toLocaleString("es-CO")}
-      </span>
+      <div className="flex flex-wrap gap-1">
+        <PaymentBadges
+          paymentMethod={rowData.paymentMethod}
+          paymentStatus={rowData.paymentStatus}
+        />
+      </div>
     );
   };
 
-  const statusBodyTemplate = (rowData: Order) => {
-    return (
-      <span
-        className={`inline-block rounded-full px-3 py-1 text-footnote ${getStatusColor(
-          rowData.status
-        )}`}
-      >
-        {getStatusLabel(rowData.status)}
-      </span>
-    );
-  };
+  const dateBodyTemplate = (rowData: Order) => (
+    <span className="text-body text-dark-700">
+      {new Date(rowData.createdAt).toLocaleDateString("es-CO", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      })}
+    </span>
+  );
 
-  const dateBodyTemplate = (rowData: Order) => {
-    return (
-      <span className="text-body text-dark-700">
-        {new Date(rowData.createdAt).toLocaleDateString("es-CO", {
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-        })}
-      </span>
-    );
-  };
-
-  const actionsBodyTemplate = (rowData: Order) => {
-    return (
-      <Link
-        href={`/admin/orders/${rowData.id}`}
-        className="text-body-medium text-green hover:underline"
-      >
-        Ver detalle
-      </Link>
-    );
-  };
+  const actionsBodyTemplate = (rowData: Order) => (
+    <Link
+      href={`/admin/orders/${rowData.id}`}
+      className="text-body-medium text-green hover:underline"
+    >
+      Ver detalle
+    </Link>
+  );
 
   return (
     <div className="rounded-lg border border-light-300 bg-light-100 overflow-hidden">
@@ -142,10 +130,11 @@ export default function OrdersTable({ orders }: Props) {
           sortable
         />
         <Column
-          field="status"
-          header="Estado"
-          body={statusBodyTemplate}
+          field="paymentMethod"
+          header="Pago"
+          body={paymentBodyTemplate}
           sortable
+          style={{ minWidth: "160px" }}
         />
         <Column
           field="createdAt"

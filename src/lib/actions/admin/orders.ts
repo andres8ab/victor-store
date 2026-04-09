@@ -2,9 +2,8 @@
 
 import { db } from "@/lib/db";
 import { orders, orderItems, users, addresses, products } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { requireAdmin } from "@/lib/auth/admin";
-import { sql } from "drizzle-orm";
 
 export async function getAllOrders() {
   await requireAdmin();
@@ -18,6 +17,17 @@ export async function getAllOrders() {
       createdAt: orders.createdAt,
       userName: users.name,
       userEmail: users.email,
+      paymentMethod: sql<string | null>`COALESCE(${orders.paymentMethod}, (
+        SELECT method::text FROM payments
+        WHERE order_id = ${orders.id}
+        LIMIT 1
+      ))`,
+      paymentStatus: sql<string | null>`(
+        SELECT status::text FROM payments
+        WHERE order_id = ${orders.id}
+        ORDER BY CASE status::text WHEN 'completed' THEN 1 WHEN 'failed' THEN 2 ELSE 3 END
+        LIMIT 1
+      )`,
     })
     .from(orders)
     .leftJoin(users, eq(orders.userId, users.id))
@@ -44,6 +54,17 @@ export async function getOrderById(orderId: string) {
       customerNotes: orders.customerNotes,
       userName: users.name,
       userEmail: users.email,
+      paymentMethod: sql<string | null>`COALESCE(${orders.paymentMethod}, (
+        SELECT method::text FROM payments
+        WHERE order_id = ${orders.id}
+        LIMIT 1
+      ))`,
+      paymentStatus: sql<string | null>`(
+        SELECT status::text FROM payments
+        WHERE order_id = ${orders.id}
+        ORDER BY CASE status::text WHEN 'completed' THEN 1 WHEN 'failed' THEN 2 ELSE 3 END
+        LIMIT 1
+      )`,
     })
     .from(orders)
     .leftJoin(users, eq(orders.userId, users.id))

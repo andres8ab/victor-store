@@ -49,6 +49,30 @@ export default async function Footer() {
       ],
     },
   ].filter((col) => col.links.length > 0 || col.fallbackLinks);
+
+  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
+  const socialLinks = [
+    {
+      src: "/facebook.svg",
+      alt: "Facebook",
+      href: "https://www.facebook.com/people/Todo-Electrico-Victor/100063567141788/",
+    },
+    {
+      src: "/instagram.svg",
+      alt: "Instagram",
+      href: "https://www.instagram.com/todoelectrico_victor/",
+    },
+    ...(whatsappNumber
+      ? [
+          {
+            src: "/whatsapp.svg",
+            alt: "WhatsApp",
+            href: `https://wa.me/${whatsappNumber}`,
+          },
+        ]
+      : []),
+  ];
+
   return (
     <footer className="bg-dark-900 text-light-100">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -89,18 +113,7 @@ export default async function Footer() {
           </div>
 
           <div className="flex gap-4 md:col-span-2 md:justify-end">
-            {[
-              {
-                src: "/facebook.svg",
-                alt: "Facebook",
-                href: "https://www.facebook.com/people/Todo-Electrico-Victor/100063567141788/",
-              },
-              {
-                src: "/instagram.svg",
-                alt: "Instagram",
-                href: "https://www.instagram.com/todoelectrico_victor/",
-              },
-            ].map((s) => (
+            {socialLinks.map((s) => (
               <Link
                 key={s.alt}
                 href={s.href}

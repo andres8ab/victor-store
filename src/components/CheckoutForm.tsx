@@ -204,7 +204,7 @@ ${info.notes ? `Notas: ${info.notes}` : ""}
                     setCustomerInfo({ ...customerInfo, name: e.target.value });
                     if (errors.name) setErrors((e) => ({ ...e, name: "" }));
                   }}
-                  className={`w-full rounded-lg border px-4 py-2 text-body text-dark-900 focus:outline-none focus:ring-2 focus:ring-dark-500 ${errors.name ? "border-red-500" : "border-light-300"}`}
+                  className={`w-full rounded-lg border px-4 py-2 text-body text-dark-900 focus:outline-none focus:ring-2 focus:ring-dark-500 ${errors.name ? "border-red-500" : "border-dark-500"}`}
                 />
                 {errors.name && (
                   <p className="mt-1 text-caption text-red-600">{errors.name}</p>
@@ -225,7 +225,7 @@ ${info.notes ? `Notas: ${info.notes}` : ""}
                     setCustomerInfo({ ...customerInfo, email: e.target.value });
                     if (errors.email) setErrors((e) => ({ ...e, email: "" }));
                   }}
-                  className={`w-full rounded-lg border px-4 py-2 text-body text-dark-900 focus:outline-none focus:ring-2 focus:ring-dark-500 ${errors.email ? "border-red-500" : "border-light-300"}`}
+                  className={`w-full rounded-lg border px-4 py-2 text-body text-dark-900 focus:outline-none focus:ring-2 focus:ring-dark-500 ${errors.email ? "border-red-500" : "border-dark-500"}`}
                 />
                 {errors.email && (
                   <p className="mt-1 text-caption text-red-600">
@@ -251,7 +251,7 @@ ${info.notes ? `Notas: ${info.notes}` : ""}
                     setCustomerInfo({ ...customerInfo, phone: v });
                     if (errors.phone) setErrors((e) => ({ ...e, phone: "" }));
                   }}
-                  className={`w-full rounded-lg border px-4 py-2 text-body text-dark-900 focus:outline-none focus:ring-2 focus:ring-dark-500 ${errors.phone ? "border-red-500" : "border-light-300"}`}
+                  className={`w-full rounded-lg border px-4 py-2 text-body text-dark-900 focus:outline-none focus:ring-2 focus:ring-dark-500 ${errors.phone ? "border-red-500" : "border-dark-500"}`}
                   placeholder="3001234567"
                 />
                 {errors.phone && (
@@ -312,7 +312,7 @@ ${info.notes ? `Notas: ${info.notes}` : ""}
                     if (errors.address)
                       setErrors((prev) => ({ ...prev, address: "" }));
                   }}
-                  className={`w-full rounded-lg border px-4 py-2 text-body text-dark-900 focus:outline-none focus:ring-2 focus:ring-dark-500 ${errors.address ? "border-red-500" : "border-light-300"}`}
+                  className={`w-full rounded-lg border px-4 py-2 text-body text-dark-900 focus:outline-none focus:ring-2 focus:ring-dark-500 ${errors.address ? "border-red-500" : "border-dark-500"}`}
                   placeholder="Calle, número, barrio..."
                 />
                 {errors.address && (
@@ -335,7 +335,7 @@ ${info.notes ? `Notas: ${info.notes}` : ""}
                     setCustomerInfo({ ...customerInfo, notes: e.target.value })
                   }
                   rows={3}
-                  className="w-full rounded-lg border border-light-300 px-4 py-2 text-body text-dark-900 focus:outline-none focus:ring-2 focus:ring-dark-500"
+                  className="w-full rounded-lg border border-dark-500 px-4 py-2 text-body text-dark-900 focus:outline-none focus:ring-2 focus:ring-dark-500"
                   placeholder="Datos adicionales para la dirección, instrucciones de entrega..."
                 />
               </div>

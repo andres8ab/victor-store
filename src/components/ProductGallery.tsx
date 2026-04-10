@@ -32,8 +32,8 @@ export default function ProductGallery({
   );
 
   return (
-    <section className={`flex w-full flex-col gap-4 lg:flex-row ${className}`}>
-      <div className="order-2 flex gap-3 overflow-x-auto lg:order-1 lg:flex-col">
+    <section className={`flex w-full flex-col gap-4 ${className}`}>
+      <div className="order-2 flex gap-3 overflow-x-auto">
         {validImages.map((src, i) => (
           <button
             key={`${src}-${i}`}
@@ -54,7 +54,7 @@ export default function ProductGallery({
         ))}
       </div>
 
-      <div className="order-1 relative w-full h-[500px] overflow-hidden rounded-xl bg-light-200 lg:order-2">
+      <div className="order-1 relative w-full h-125 overflow-hidden rounded-xl bg-transparent">
         {validImages.length > 0 ? (
           <>
             <Image
@@ -62,7 +62,7 @@ export default function ProductGallery({
               alt="Product image"
               fill
               sizes="(min-width:1024px) 720px, 100vw"
-              className="object-cover"
+              className="object-contain"
               priority
             />
 

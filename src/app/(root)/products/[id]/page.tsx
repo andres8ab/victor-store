@@ -207,12 +207,32 @@ export default async function ProductDetailPage({
         ? Number(product.salePrice)
         : Number(product.price),
       availability:
-        product.inStock > 0
+        (product.inStock ?? 0) > 0
           ? "https://schema.org/InStock"
           : "https://schema.org/OutOfStock",
       seller: {
         "@type": "Organization",
         name: "Todo Eléctrico Víctor",
+      },
+      shippingDetails: {
+        "@type": "OfferShippingDetails",
+        shippingDestination: {
+          "@type": "DefinedRegion",
+          addressCountry: "CO",
+        },
+        shippingRate: {
+          "@type": "MonetaryAmount",
+          value: "0",
+          currency: "COP",
+        },
+      },
+      hasMerchantReturnPolicy: {
+        "@type": "MerchantReturnPolicy",
+        applicableCountry: "CO",
+        returnPolicyCategory:
+          "https://schema.org/MerchantReturnFiniteReturnWindow",
+        merchantReturnDays: 8,
+        returnMethod: "https://schema.org/ReturnByMail",
       },
     },
   };

@@ -18,6 +18,8 @@ export default function robots(): MetadataRoute.Robots {
           "/orders/",
           "/sign-in/",
           "/sign-up/",
+          "/_next/image",
+          "/_next/image/",
         ],
       },
     ],

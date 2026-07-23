@@ -16,7 +16,7 @@ const bebasNeue = Bebas_Neue({
   variable: "--font-display",
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://todoelectricovicto.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://todoelectricovictor.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

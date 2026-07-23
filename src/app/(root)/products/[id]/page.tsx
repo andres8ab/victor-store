@@ -13,6 +13,9 @@ import {
 
 export const revalidate = 3600; // revalidate product pages every hour
 
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://todoelectricovictor.com";
+
 export async function generateMetadata({
   params,
 }: {
@@ -191,12 +194,21 @@ export default async function ProductDetailPage({
 
   const { product, images } = data;
 
+  const toAbsoluteUrl = (url: string) =>
+    /^https?:\/\//i.test(url)
+      ? url
+      : `${SITE_URL}${url.startsWith("/") ? "" : "/"}${url}`;
+
+  const jsonLdImages = images.length
+    ? images.map((img) => toAbsoluteUrl(img.url))
+    : [`${SITE_URL}/logo.png`];
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
     description: product.description,
-    image: images.map((img) => img.url),
+    image: jsonLdImages,
     ...(product.brand && {
       brand: { "@type": "Brand", name: product.brand.name },
     }),

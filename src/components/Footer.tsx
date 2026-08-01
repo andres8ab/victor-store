@@ -67,7 +67,7 @@ export default async function Footer() {
                         <li key={category.id}>
                           <Link
                             href={`/products?category[]=${category.slug}`}
-                            className="text-body text-light-400 hover:text-light-300 transition-colors"
+                            className="relative text-body text-light-400 transition-colors after:absolute after:-bottom-0.5 after:left-0 after:h-px after:w-0 after:bg-primary-500 after:transition-[width] after:duration-300 hover:text-light-300 hover:after:w-full"
                           >
                             {category.name}
                           </Link>
@@ -77,7 +77,7 @@ export default async function Footer() {
                         <li key={link.href}>
                           <Link
                             href={link.href}
-                            className="text-body text-light-400 hover:text-light-300 transition-colors"
+                            className="relative text-body text-light-400 transition-colors after:absolute after:-bottom-0.5 after:left-0 after:h-px after:w-0 after:bg-primary-500 after:transition-[width] after:duration-300 hover:text-light-300 hover:after:w-full"
                           >
                             {link.label}
                           </Link>
@@ -105,7 +105,7 @@ export default async function Footer() {
                 key={s.alt}
                 href={s.href}
                 aria-label={s.alt}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-light-100"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-light-100 transition duration-300 ease-out hover:bg-primary-500 motion-safe:hover:-translate-y-0.5"
               >
                 <Image src={s.src} alt={s.alt} width={18} height={18} />
               </Link>
@@ -133,7 +133,7 @@ export default async function Footer() {
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  className="hover:text-light-300 transition-colors"
+                  className="relative transition-colors after:absolute after:-bottom-0.5 after:left-0 after:h-px after:w-0 after:bg-primary-500 after:transition-[width] after:duration-300 hover:text-light-300 hover:after:w-full"
                 >
                   {link.label}
                 </Link>

@@ -18,9 +18,9 @@ export interface CardProps {
 }
 
 const toneToBg: Record<BadgeTone, string> = {
-  red: "text-[--color-red]",
-  green: "text-[--color-green]",
-  orange: "text-[--color-orange]",
+  red: "text-red",
+  green: "text-green",
+  orange: "text-orange",
 };
 
 export default function Card({
@@ -71,7 +71,7 @@ export default function Card({
 
   const content = (
     <article
-      className={`group rounded-xl bg-white ring-1 ring-light-300 transition-colors hover:ring-dark-500 ${className}`}
+      className={`group rounded-xl bg-white shadow-sm ring-1 ring-light-300 transition duration-300 ease-out hover:shadow-lg hover:shadow-dark-900/10 hover:ring-primary-500/60 motion-safe:hover:-translate-y-1 ${className}`}
     >
       <div className="relative aspect-square overflow-hidden rounded-t-xl bg-white">
         <Image
@@ -80,13 +80,13 @@ export default function Card({
           width={720}
           height={720}
           // sizes="(min-width: 1280px) 360px, (min-width: 1024px) 300px, (min-width: 640px) 45vw, 90vw"
-          className="object-contain w-auto h-full transition-transform duration-300 group-hover:scale-105"
+          className="object-contain w-auto h-full transition-transform duration-500 ease-out motion-safe:group-hover:scale-110"
         />
         {displayPrice && (
           <span className="absolute top-2 right-2 rounded-md bg-white/90 px-2 py-1 text-body-medium font-medium text-dark-900 shadow-sm ring-1 ring-light-300">
             {hasValidSale ? (
               <>
-                <span className="text-[--color-green]">{displayPrice}</span>
+                <span className="text-green">{displayPrice}</span>
                 <span className="ml-2 text-caption text-dark-700 line-through">
                   {basePriceFormatted}
                 </span>
@@ -95,6 +95,16 @@ export default function Card({
               displayPrice
             )}
           </span>
+        )}
+        {href && (
+          <div
+            aria-hidden
+            className="absolute inset-x-0 bottom-0 translate-y-full bg-primary-500 py-2.5 text-center transition-transform duration-300 ease-out motion-safe:group-hover:translate-y-0"
+          >
+            <span className="text-caption font-semibold uppercase tracking-wide text-dark-900">
+              Ver detalle →
+            </span>
+          </div>
         )}
       </div>
       <div className="p-4">
@@ -105,7 +115,7 @@ export default function Card({
             {badge.label}
           </span>
         )}
-        <h3 className="mb-1 line-clamp-2 wrap-break-word text-body text-dark-900">
+        <h3 className="mb-1 line-clamp-2 wrap-break-word text-body text-dark-900 transition-colors group-hover:text-primary-600">
           {title}
         </h3>
         {description && (
@@ -125,7 +135,7 @@ export default function Card({
     <Link
       href={href}
       aria-label={title}
-      className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[--color-dark-500]"
+      className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-dark-500"
     >
       {content}
     </Link>

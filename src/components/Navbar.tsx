@@ -109,7 +109,7 @@ export default function Navbar() {
               <li key={l.href}>
                 <Link
                   href={l.href}
-                  className="text-body text-dark-900 transition-colors hover:text-dark-700"
+                  className="relative text-body text-dark-900 transition-colors after:absolute after:-bottom-0.5 after:left-0 after:h-px after:w-0 after:bg-primary-500 after:transition-[width] after:duration-300 hover:text-dark-700 hover:after:w-full"
                 >
                   {l.label}
                 </Link>
@@ -147,7 +147,7 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={() => setSearch("")}
-                className="absolute right-3 text-dark-700 hover:text-red-500"
+                className="absolute right-3 text-dark-700 transition-colors hover:text-red-500"
                 aria-label="Limpiar búsqueda"
               >
                 ✖
@@ -241,7 +241,7 @@ export default function Navbar() {
                     <Link
                       href={`/products?search=${encodeURIComponent(search)}`}
                       onClick={() => setSearch("")}
-                      className="block text-center text-body-medium text-dark-900 transition-colors hover:text-dark-700"
+                      className="relative mx-auto block w-fit text-body-medium text-dark-900 transition-colors after:absolute after:-bottom-0.5 after:left-0 after:h-px after:w-0 after:bg-primary-500 after:transition-[width] after:duration-300 hover:text-dark-700 hover:after:w-full"
                     >
                       Ver todos los resultados →
                     </Link>
@@ -303,7 +303,7 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => setSearch("")}
-              className="absolute right-3 text-dark-700 hover:text-red-500"
+              className="absolute right-3 text-dark-700 transition-colors hover:text-red-500"
               aria-label="Limpiar búsqueda"
             >
               ✖
@@ -397,7 +397,7 @@ export default function Navbar() {
                   <Link
                     href={`/products?search=${encodeURIComponent(search)}`}
                     onClick={() => setSearch("")}
-                    className="block text-center text-body-medium text-dark-900 transition-colors hover:text-dark-700"
+                    className="relative mx-auto block w-fit text-body-medium text-dark-900 transition-colors after:absolute after:-bottom-0.5 after:left-0 after:h-px after:w-0 after:bg-primary-500 after:transition-[width] after:duration-300 hover:text-dark-700 hover:after:w-full"
                   >
                     Ver todos los resultados →
                   </Link>
@@ -419,7 +419,7 @@ export default function Navbar() {
             <li key={l.href}>
               <Link
                 href={l.href}
-                className="block py-2 text-body text-dark-900 hover:text-dark-700"
+                className="block py-2 text-body text-dark-900 transition-colors hover:text-dark-700"
                 onClick={() => setOpen(false)}
               >
                 {l.label}

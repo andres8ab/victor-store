@@ -1,12 +1,14 @@
 import Link from "next/link";
 import Image from "next/image";
+import HeroVideo from "./HeroVideo";
 
 export default function Hero() {
   return (
     <section
       className="relative overflow-hidden rounded-4xl border border-white/10 bg-dark-900 text-white shadow-[0_24px_80px_-24px_rgb(0_0_0/0.45)]"
       style={{
-        clipPath: "polygon(0 0, 100% 0, 100% calc(100% - 1.5rem), 98% 100%, 0 100%)",
+        clipPath:
+          "polygon(0 0, 100% 0, 100% calc(100% - 1.5rem), 98% 100%, 0 100%)",
       }}
     >
       <div className="absolute inset-0 z-0">
@@ -17,6 +19,7 @@ export default function Hero() {
           className="object-cover opacity-35"
           priority
         />
+        <HeroVideo />
         <div className="absolute inset-0 bg-linear-to-br from-dark-900 via-dark-900/85 to-primary-600/25" />
         <div className="grain-overlay absolute inset-0 mix-blend-overlay" />
         <div
@@ -45,13 +48,13 @@ export default function Hero() {
             <div className="animate-home-fade-up animate-home-delay-3 mt-10 flex flex-wrap gap-4 opacity-0">
               <Link
                 href="/products"
-                className="inline-flex items-center justify-center rounded-full bg-primary-500 px-8 py-3.5 text-sm font-semibold uppercase tracking-wide text-dark-900 shadow-lg shadow-primary-500/25 transition hover:bg-primary-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900"
+                className="inline-flex items-center justify-center rounded-full bg-primary-500 px-8 py-3.5 text-sm font-semibold uppercase tracking-wide text-dark-900 shadow-lg shadow-primary-500/25 transition duration-300 ease-out hover:bg-primary-400 hover:shadow-xl hover:shadow-primary-500/35 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900 motion-safe:hover:-translate-y-0.5"
               >
                 Ver catálogo
               </Link>
               <Link
                 href="/contact"
-                className="inline-flex items-center justify-center rounded-full border border-white/25 bg-white/5 px-8 py-3.5 text-sm font-semibold uppercase tracking-wide text-white backdrop-blur-sm transition hover:border-white/40 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900"
+                className="inline-flex items-center justify-center rounded-full border border-white/25 bg-white/5 px-8 py-3.5 text-sm font-semibold uppercase tracking-wide text-white backdrop-blur-sm transition duration-300 ease-out hover:border-white/40 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900 motion-safe:hover:-translate-y-0.5"
               >
                 Contáctanos
               </Link>

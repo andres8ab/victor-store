@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Carousel } from "primereact/carousel";
 import { Card } from "@/components";
 
@@ -24,6 +25,8 @@ export default function ProductCarousel({
   products,
   sectionIndex,
 }: ProductCarouselProps) {
+  const [paused, setPaused] = useState(false);
+
   const responsiveOptions = [
     { breakpoint: "2000px", numVisible: 4, numScroll: 1 },
     { breakpoint: "1199px", numVisible: 3, numScroll: 1 },
@@ -84,19 +87,26 @@ export default function ProductCarousel({
         </div>
         <div className="hidden h-px flex-1 bg-linear-to-r from-light-300 to-transparent sm:ml-8 sm:block" />
       </div>
-      <Carousel
-        value={paddedProducts}
-        numVisible={maxVisible}
-        numScroll={1}
-        responsiveOptions={responsiveOptions}
-        itemTemplate={productTemplate}
-        circular
-        showIndicators={false}
-        autoplayInterval={3000}
-        pt={{
-          itemsContent: { className: "gap-4" },
-        }}
-      />
+      <div
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
+        onFocusCapture={() => setPaused(true)}
+        onBlurCapture={() => setPaused(false)}
+      >
+        <Carousel
+          value={paddedProducts}
+          numVisible={maxVisible}
+          numScroll={1}
+          responsiveOptions={responsiveOptions}
+          itemTemplate={productTemplate}
+          circular
+          showIndicators={false}
+          autoplayInterval={paused ? undefined : 3000}
+          pt={{
+            itemsContent: { className: "gap-4 py-4" },
+          }}
+        />
+      </div>
     </section>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { startTransition, useEffect, useMemo, useState } from "react";
 import {
   getArrayParam,
   removeParams,
@@ -20,9 +20,43 @@ const PRICES = [
 
 type GroupKey = "category" | "brand" | "color" | "price";
 
+function Group({
+  title,
+  children,
+  k,
+  expanded,
+  setExpanded,
+}: {
+  readonly title: string;
+  readonly children: import("react").ReactNode;
+  readonly k: GroupKey;
+  readonly expanded: Record<GroupKey, boolean>;
+  readonly setExpanded: import("react").Dispatch<import("react").SetStateAction<Record<GroupKey, boolean>>>;
+}) {
+  return (
+    <div className="border-b border-light-300 py-4">
+      <button
+        className="flex w-full items-center justify-between text-body-medium text-dark-900 cursor-pointer"
+        onClick={() => setExpanded((s) => ({ ...s, [k]: !s[k] }))}
+        aria-expanded={expanded[k]}
+        aria-controls={`${k}-section`}
+      >
+        <span>{title}</span>
+        <i className={`pi ${expanded[k] ? "pi-angle-up" : "pi-angle-down"} text-dark-700`} />
+      </button>
+      <div
+        id={`${k}-section`}
+        className={`${expanded[k] ? "mt-3 block" : "hidden"}`}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
 type Props = {
-  categories: FilterCategory[];
-  brands: FilterBrand[];
+  readonly categories: readonly FilterCategory[];
+  readonly brands: readonly FilterBrand[];
 };
 
 export default function Filters({ categories, brands }: Props) {
@@ -47,7 +81,7 @@ export default function Filters({ categories, brands }: Props) {
   };
 
   useEffect(() => {
-    setOpen(false);
+    startTransition(() => setOpen(false));
   }, [search]);
 
   const onToggle = (key: GroupKey, value: string) => {
@@ -65,36 +99,6 @@ export default function Filters({ categories, brands }: Props) {
     ]);
     router.push(url, { scroll: false });
   };
-
-  const Group = ({
-    title,
-    children,
-    k,
-  }: {
-    title: string;
-    children: import("react").ReactNode;
-    k: GroupKey;
-  }) => (
-    <div className="border-b border-light-300 py-4">
-      <button
-        className="flex w-full items-center justify-between text-body-medium text-dark-900"
-        onClick={() => setExpanded((s) => ({ ...s, [k]: !s[k] }))}
-        aria-expanded={expanded[k]}
-        aria-controls={`${k}-section`}
-      >
-        <span>{title}</span>
-        <span className="text-caption text-dark-700">
-          {expanded[k] ? "−" : "+"}
-        </span>
-      </button>
-      <div
-        id={`${k}-section`}
-        className={`${expanded[k] ? "mt-3 block" : "hidden"}`}
-      >
-        {children}
-      </div>
-    </div>
-  );
 
   return (
     <>
@@ -130,6 +134,8 @@ export default function Filters({ categories, brands }: Props) {
             activeCounts.category ? `(${activeCounts.category})` : ""
           }`}
           k="category"
+          expanded={expanded}
+          setExpanded={setExpanded}
         >
           <ul className="space-y-2">
             {categories.map((c) => {
@@ -160,6 +166,8 @@ export default function Filters({ categories, brands }: Props) {
         <Group
           title={`Marca ${activeCounts.brand ? `(${activeCounts.brand})` : ""}`}
           k="brand"
+          expanded={expanded}
+          setExpanded={setExpanded}
         >
           <ul className="space-y-2">
             {brands.map((b) => {
@@ -188,6 +196,8 @@ export default function Filters({ categories, brands }: Props) {
         <Group
           title={`Precio ${activeCounts.price ? `(${activeCounts.price})` : ""}`}
           k="price"
+          expanded={expanded}
+          setExpanded={setExpanded}
         >
           <ul className="space-y-2">
             {PRICES.map((p) => {
@@ -234,7 +244,7 @@ export default function Filters({ categories, brands }: Props) {
             </div>
             {/* Reuse the same desktop content by rendering the component again */}
             <div className="md:hidden">
-              <Group title="Categoría" k="category">
+              <Group title="Categoría" k="category" expanded={expanded} setExpanded={setExpanded}>
                 <ul className="space-y-2">
                   {categories.map((c) => {
                     const checked = getArrayParam(search, "category").includes(
@@ -261,7 +271,7 @@ export default function Filters({ categories, brands }: Props) {
                 </ul>
               </Group>
 
-              <Group title="Marca" k="brand">
+              <Group title="Marca" k="brand" expanded={expanded} setExpanded={setExpanded}>
                 <ul className="space-y-2">
                   {brands.map((b) => {
                     const checked = getArrayParam(search, "brand").includes(
@@ -288,7 +298,7 @@ export default function Filters({ categories, brands }: Props) {
                 </ul>
               </Group>
 
-              <Group title="Precio" k="price">
+              <Group title="Precio" k="price" expanded={expanded} setExpanded={setExpanded}>
                 <ul className="space-y-2">
                   {PRICES.map((p) => {
                     const checked = getArrayParam(search, "price").includes(

@@ -1,4 +1,5 @@
 export { default as Navbar } from "./Navbar";
+export { default as PromoBar } from "./PromoBar";
 export { default as Card } from "./Card";
 export { default as Footer } from "./Footer";
 export { default as AuthForm } from "./AuthForm";
@@ -9,3 +10,4 @@ export { CheckoutForm } from "./CheckoutForm";
 export { AddToCartButton } from "./AddToCartButton";
 export { CartLink } from "./CartLink";
 export { default as ProductDetails } from "./ProductDetails";
+export { PaymentBadges } from "./PaymentBadges";

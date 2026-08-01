@@ -1,4 +1,4 @@
-import { Navbar, Footer } from "@/components";
+import { Navbar, Footer, PromoBar } from "@/components";
 
 export default function RootLayout({
   children,
@@ -7,6 +7,7 @@ export default function RootLayout({
 }) {
   return (
     <div className="flex min-h-dvh flex-col">
+      <PromoBar />
       <Navbar />
       <div className="relative flex flex-1 flex-col">
         <div

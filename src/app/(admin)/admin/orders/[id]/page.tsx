@@ -3,6 +3,7 @@ import { isAdmin } from "@/lib/auth/admin";
 import { getOrderById } from "@/lib/actions/admin/orders";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { PaymentBadges } from "@/components";
 
 export default async function AdminOrderDetailPage({
   params,
@@ -32,32 +33,12 @@ export default async function AdminOrderDetailPage({
     );
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "pending":
-        return "bg-orange/20 text-orange";
-      case "paid":
-        return "bg-green/20 text-green";
-      case "shipped":
-        return "bg-blue-500/20 text-blue-500";
-      case "delivered":
-        return "bg-green/20 text-green";
-      case "cancelled":
-        return "bg-red/20 text-red";
-      default:
-        return "bg-dark-500/20 text-dark-500";
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    const labels: Record<string, string> = {
-      pending: "Pendiente",
-      paid: "Pagado",
-      shipped: "Enviado",
-      delivered: "Entregado",
-      cancelled: "Cancelado",
-    };
-    return labels[status] || status;
+  const orderStatusConfig: Record<string, { label: string; className: string }> = {
+    pending: { label: "Pendiente", className: "bg-orange/20 text-orange" },
+    paid: { label: "Pagado", className: "bg-green/20 text-green" },
+    shipped: { label: "Enviado", className: "bg-blue-500/20 text-blue-500" },
+    delivered: { label: "Entregado", className: "bg-green/20 text-green" },
+    cancelled: { label: "Cancelado", className: "bg-red/20 text-red" },
   };
 
   return (
@@ -74,14 +55,12 @@ export default async function AdminOrderDetailPage({
         <h1 className="text-heading-2 text-dark-900 mb-4">
           Pedido #{order.id.slice(0, 8)}
         </h1>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
-          <span
-            className={`inline-block rounded-full px-3 py-1 text-footnote ${getStatusColor(
-              order.status
-            )}`}
-          >
-            {getStatusLabel(order.status)}
-          </span>
+        <div className="flex flex-wrap items-center gap-2">
+
+          <PaymentBadges
+            paymentMethod={order.paymentMethod}
+            paymentStatus={order.paymentStatus}
+          />
           <span className="text-body text-dark-700">
             {new Date(order.createdAt).toLocaleDateString("es-CO", {
               year: "numeric",

@@ -15,6 +15,20 @@
       "when": 1772750045232,
       "tag": "0001_sticky_pete_wisdom",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1775508612146,
+      "tag": "0002_bright_hawkeye",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1775679518345,
+      "tag": "0003_ambiguous_miek",
+      "breakpoints": true
     }
   ]
 }

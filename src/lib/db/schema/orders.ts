@@ -7,6 +7,7 @@ import {
   integer,
   text,
 } from "drizzle-orm/pg-core";
+
 import { relations } from "drizzle-orm";
 import { z } from "zod";
 import { users } from "./user";
@@ -37,6 +38,7 @@ export const orders = pgTable("orders", {
   customerEmail: text("customer_email"),
   customerPhone: text("customer_phone"),
   customerNotes: text("customer_notes"),
+  paymentMethod: text("payment_method"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

@@ -41,9 +41,14 @@ export async function POST(req: Request) {
       },
     });
 
-    const to =
-      process.env.CONTACT_RECIPIENT_EMAIL ||
-      "todoelectricovictor@gmail.com";
+    const recipients = ["todoelectricovictor@gmail.com"];
+    if (
+      process.env.CONTACT_RECIPIENT_EMAIL &&
+      !recipients.includes(process.env.CONTACT_RECIPIENT_EMAIL)
+    ) {
+      recipients.push(process.env.CONTACT_RECIPIENT_EMAIL);
+    }
+    const to = recipients.join(", ");
 
     const subjectLabel = SUBJECT_LABELS[subject as keyof typeof SUBJECT_LABELS] ?? subject;
 
